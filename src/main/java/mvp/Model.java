@@ -3,12 +3,26 @@ package mvp;
 import data.*;
 
 import files.LoaderOfData;
+import optimalizacia.MinimalizaciaAutobusov;
+import optimalizacia.MinimalizaciaPrejazdov;
+import optimalizacia.MinimalizaciaVodicov;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 public class Model {
+    public static final int REZERVA_1 = 5;
+    public static final int REZERVA_2 = 10;
+    public static final int DEPO = 59;
+    public static final int C_VODIC = 50;
+    public static final int C_KM = 2;
+    public static final int K = 10000;
+
+    public static final int DT_MAX = 10 * 60;
+    public static final int T_MAX = 13 * 60;
     private LinkedHashMap<Dvojica<Integer, Integer>, Usek> useky;
+    private LinkedHashMap<Dvojica<Integer, Integer>, Integer> DT;
+    private LinkedHashMap<Dvojica<Integer, Integer>, Integer> T;
     private LinkedHashMap<Integer, Spoj> spoje;
     private LinkedHashMap<Integer, Zastavka> zastavky;
     private LinkedHashMap<Integer, Linka> linky;
@@ -16,9 +30,10 @@ public class Model {
     {
         this.useky = new LinkedHashMap<>();
         this.spoje = new LinkedHashMap<>();
+        this.DT = new LinkedHashMap<>();
+        this.T = new LinkedHashMap<>();
         this.zastavky = new LinkedHashMap<>();
         this.linky = new LinkedHashMap<>();
-        //String dataSpoj[][]
     }
 
     public String nacitajData(String pSuborUseky, String pSuborSpoje)
@@ -42,49 +57,124 @@ public class Model {
             return "Chyba pri načítavaní spojov!";
         }
 
-        for (int id_i : this.spoje.keySet())
+        for (Spoj spoj_i : this.spoje.values())
         {
-            Spoj spoj_i = this.spoje.get(id_i);
             int miestoPrichodu_i = spoj_i.getMiestoPrichoduID();
-            int casPrichodu_i = spoj_i.getCasPrichodu();
-            for (int id_j : this.spoje.keySet())
+            int casPrichodu_i = spoj_i.getCasPrichoduMinuty();
+            for (Spoj spoj_j : this.spoje.values())
             {
-                Spoj spoj_j = this.spoje.get(id_j);
                 int miestoOdchodu_j = spoj_j.getMiestoOdchoduID();
-                int casOdchodu_j = spoj_j.getCasOdchodu();
-                int dist = useky.get(new Dvojica<>(miestoPrichodu_i, miestoOdchodu_j)).getCasPrejazdu();
+                int casOdchodu_j = spoj_j.getCasOdchoduMinuty();
+                int casPrejazdu = this.useky.get(new Dvojica<>(miestoPrichodu_i, miestoOdchodu_j)).getCasPrejazdu();
 
-                if (casPrichodu_i + dist <= casOdchodu_j)
+                if (casPrichodu_i + casPrejazdu + REZERVA_1 <= casOdchodu_j)
                 {
-                    spoj_i.pridajSpojKtoryMozeNasledovat(spoj_j);
+                    System.out.println(spoj_i.getID() + " : " + spoj_j.getID());
+                    int casMedziSpojmi = spoj_j.getCasOdchoduMinuty() - spoj_i.getCasPrichoduMinuty();
+                    int casJazdy = (casMedziSpojmi - casPrejazdu < 10) ? casMedziSpojmi : casPrejazdu;
+                    this.DT.put(new Dvojica<>(spoj_i.getID(), spoj_j.getID()), casJazdy);
+                    this.T.put(new Dvojica<>(spoj_i.getID(), spoj_j.getID()), casMedziSpojmi);
+
+                    System.out.println("cas prejazdu: " + casPrejazdu);
+                    System.out.println("DT: " + casJazdy);
+                    System.out.println("T:" + casMedziSpojmi);
+                    System.out.println();
+                    spoj_i.pridajNaslednostSpoja(spoj_j);
+                }
+
+                int dist1 = this.useky.get(new Dvojica<>(miestoPrichodu_i, DEPO)).getCasPrejazdu();
+                int dist2 = this.useky.get(new Dvojica<>(DEPO, miestoOdchodu_j)).getCasPrejazdu();
+                if (casPrichodu_i + dist1 + dist2 + REZERVA_2 <= casOdchodu_j)
+                {
+                    spoj_i.pridajNaslednostSpojaVodic(spoj_j);
                 }
             }
         }
         return "Načítanie údajov bolo úspešné.";
     }
 
+    //TODO prerobiť - bez vypisov o časoch prejazdov
     public String[][] vypisVsetkySpoje()
     {
-        String[][] udajeSpoje = new String[this.spoje.size()][6];
+        String[][] udajeSpoje = new String[this.spoje.size()][9];
         int counter = 0;
-        for (int id: this.spoje.keySet())
+        for (Spoj spoj_i: this.spoje.values())
         {
-            Spoj spoj_i = this.spoje.get(id);
-            udajeSpoje[counter] = spoj_i.vypis();
+            udajeSpoje[counter] = spoj_i.vypis(this.useky);
             counter++;
         }
         return udajeSpoje;
     }
 
+    //TODO prerobiť - bez vypisov o časoch prejazdov
     public LinkedHashMap<Integer, String[][]> vypisVsetkyLinky()
     {
         LinkedHashMap<Integer, String[][]> linkyUdaje = new LinkedHashMap<>();
-        for (int linka_id: this.linky.keySet())
+        for (Linka linka_i: this.linky.values())
         {
-            Linka linka_i = this.linky.get(linka_id);
-            linkyUdaje.put(linka_id, linka_i.vypis());
+            linkyUdaje.put(linka_i.getID(), linka_i.vypis(this.useky));
         }
 
         return linkyUdaje;
+    }
+
+    public String vykonajMinimalizaciuAutobusov(ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
+    {
+        try
+        {
+            MinimalizaciaAutobusov minBusov = new MinimalizaciaAutobusov(this.spoje);
+            int pocetBusov = minBusov.getPocetAutobusov();
+            ArrayList<Turnus> turnusy = minBusov.getTurnusy();
+            for (Turnus turnus: turnusy)
+            {
+                pTurnusyUdaje.add(turnus.vypis(this.useky));
+                pSpojeUdaje.add(turnus.vypisSpoje(this.useky));
+            }
+            return String.valueOf(pocetBusov);
+        }
+        catch (Exception e)
+        {
+            return "Chyba pri načítavaní úsekov!";
+        }
+    }
+
+    public String vykonajMinimalizaciuPrazdnychPrejazdov(ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
+    {
+        try
+        {
+            MinimalizaciaPrejazdov minBusov = new MinimalizaciaPrejazdov(this.spoje, this.useky);
+            int prazdnePrejazdy = minBusov.getPrazdnePrejazdy();
+            ArrayList<Turnus> turnusy = minBusov.getTurnusy();
+            for (Turnus turnus: turnusy)
+            {
+                pTurnusyUdaje.add(turnus.vypis(this.useky));
+                pSpojeUdaje.add(turnus.vypisSpoje(this.useky));
+            }
+            return String.valueOf(prazdnePrejazdy);
+        }
+        catch (Exception e)
+        {
+            return "Chyba pri načítavaní úsekov!";
+        }
+    }
+
+    public String vykonajMinimalizaciuVodicov(ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
+    {
+        try
+        {
+            MinimalizaciaVodicov minVodicov = new MinimalizaciaVodicov(this.spoje, this.useky, this.DT, this.T);
+            int pocetVodicov = minVodicov.getPocetVodicov();
+            ArrayList<Turnus> turnusy = minVodicov.getTurnusy();
+            for (Turnus turnus: turnusy)
+            {
+                pTurnusyUdaje.add(turnus.vypis(this.useky));
+                pSpojeUdaje.add(turnus.vypisSpoje(this.useky));
+            }
+            return String.valueOf(pocetVodicov);
+        }
+        catch (Exception e)
+        {
+            return "Chyba pri načítavaní úsekov!";
+        }
     }
 }

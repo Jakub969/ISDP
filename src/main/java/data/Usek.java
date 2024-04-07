@@ -23,6 +23,6 @@ public class Usek {
 
     public int getCasPrejazdu()
     {
-        return this.casPrejazdu * 60;
+        return this.casPrejazdu; // v minutach
     }
 }

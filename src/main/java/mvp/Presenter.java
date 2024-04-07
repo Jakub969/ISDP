@@ -1,5 +1,6 @@
 package mvp;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 public class Presenter {
@@ -20,5 +21,19 @@ public class Presenter {
     }
     public LinkedHashMap<Integer, String[][]> vypisVsetkyLinky() {
         return this.model.vypisVsetkyLinky();
+    }
+    public String vykonajMinimalizaciuAutobusov(ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
+    {
+        return this.model.vykonajMinimalizaciuAutobusov(pTurnusyUdaje, pSpojeUdaje);
+    }
+
+    public String vykonajMinimalizaciuPrazdnychPrejazdov(ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
+    {
+        return this.model.vykonajMinimalizaciuPrazdnychPrejazdov(pTurnusyUdaje, pSpojeUdaje);
+    }
+
+    public String vykonajMinimalizaciuVodicov(ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
+    {
+        return this.model.vykonajMinimalizaciuVodicov(pTurnusyUdaje, pSpojeUdaje);
     }
 }

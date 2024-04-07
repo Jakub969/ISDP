@@ -1,6 +1,7 @@
 package data;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 public class Linka
 {
@@ -17,15 +18,19 @@ public class Linka
     {
         this.spoje.add(pSpoj);
     }
-    public String[][] vypis()
+    public String[][] vypis(LinkedHashMap<Dvojica<Integer, Integer>, Usek> useky)
     {
-        String[][] udajeSpoje = new String[this.spoje.size()][6];
+        String[][] udajeSpoje = new String[this.spoje.size()][9];
         int counter = 0;
         for (Spoj spoj_i: this.spoje)
         {
-            udajeSpoje[counter] = spoj_i.vypis();
+            udajeSpoje[counter] = spoj_i.vypis(useky);
             counter++;
         }
         return udajeSpoje;
+    }
+
+    public int getID() {
+        return ID;
     }
 }

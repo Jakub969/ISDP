@@ -11,3 +11,6 @@ public class Main
        //MajerMinBusov.runModel1();
     }
 }
+
+// TODO vytvoriť len jedno GRBEnv, aj ho zničiť na konci (GRBEnv.dispose())
+// TODO masívna refaktorizácia/prerábka

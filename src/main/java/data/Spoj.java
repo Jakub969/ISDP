@@ -1,7 +1,10 @@
 package data;
 
+import mvp.Model;
+
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 /**
  * Trieda reprezentujúca jeden spoj.
@@ -29,6 +32,12 @@ public class Spoj
     private final LocalTime casPrichodu;
 
     private ArrayList<Spoj> mozneNasledujuceSpoje;
+    private ArrayList<Spoj> moznePredchadzajuceSpoje;
+    private ArrayList<Spoj> mozneNasledujuceSpojeVodic;
+    private ArrayList<Spoj> moznePredchadzajuceSpojeVodic;
+    private Spoj predchadzajuci;
+    private Spoj nasledujuci;
+    private boolean koniecZmeny;
 
     public Spoj(int pID, int pIdLinky, int pIdSpoja,
                 Zastavka pMiestoOdchodu, LocalTime pCasOdchodu, Zastavka pMiestoPrichodu, LocalTime pCasPrichodu)
@@ -41,6 +50,12 @@ public class Spoj
         this.miestoPrichodu = pMiestoPrichodu;
         this.casPrichodu = pCasPrichodu;
         this.mozneNasledujuceSpoje = new ArrayList<>();
+        this.moznePredchadzajuceSpoje = new ArrayList<>();
+        this.mozneNasledujuceSpojeVodic = new ArrayList<>();
+        this.moznePredchadzajuceSpojeVodic = new ArrayList<>();
+        this.predchadzajuci = null;
+        this.nasledujuci = null;
+        this.koniecZmeny = false;
     }
 
     public int getID()
@@ -63,9 +78,13 @@ public class Spoj
     {
         return this.miestoOdchodu.getID();
     }
-    public int getCasOdchodu()
+    public int getCasOdchoduMinuty()
     {
-        return this.casOdchodu.toSecondOfDay();
+        return this.casOdchodu.toSecondOfDay() / 60;
+    }
+    public LocalTime getCasOdchodu()
+    {
+        return this.casOdchodu;
     }
     public Zastavka getMiestoPrichodu()
     {
@@ -75,31 +94,108 @@ public class Spoj
     {
         return this.miestoPrichodu.getID();
     }
-    public int getCasPrichodu()
+    public int getCasPrichoduMinuty()
     {
-        return this.casPrichodu.toSecondOfDay();
+        return this.casPrichodu.toSecondOfDay() / 60;
+    }
+    public LocalTime getCasPrichodu()
+    {
+        return this.casPrichodu;
     }
     public int getTrvanieSpoja()
     {
-        return Math.abs(this.casPrichodu.toSecondOfDay() - this.casOdchodu.toSecondOfDay());
+        return Math.abs(this.casPrichodu.toSecondOfDay() - this.casOdchodu.toSecondOfDay()) / 60;   //TODO načítať trvanie?
     }
-    public void pridajSpojKtoryMozeNasledovat(Spoj pSpoj)
+    public void pridajNaslednostSpojaVodic(Spoj pSpoj)
     {
+        pSpoj.pridajSpojKtoryMozePredchadzatVodic(this);
+        this.mozneNasledujuceSpojeVodic.add(pSpoj);
+    }
+    private void pridajSpojKtoryMozePredchadzatVodic(Spoj pSpoj)
+    {
+        this.moznePredchadzajuceSpojeVodic.add(pSpoj);
+    }
+
+    public void pridajNaslednostSpoja(Spoj pSpoj)
+    {
+        pSpoj.pridajSpojKtoryMozePredchadzat(this);
         this.mozneNasledujuceSpoje.add(pSpoj);
+    }
+    private void pridajSpojKtoryMozePredchadzat(Spoj pSpoj)
+    {
+        this.moznePredchadzajuceSpoje.add(pSpoj);
     }
     public ArrayList<Spoj> getMozneNasledujuceSpoje()
     {
         return this.mozneNasledujuceSpoje;
     }
-    public String[] vypis()
+    public ArrayList<Spoj> getMoznePredchadzajuceSpoje()
     {
-        String[] udaje = new String[6];
+        return this.moznePredchadzajuceSpoje;
+    }
+    public ArrayList<Spoj> getMozneNasledujuceSpojeVodic()
+    {
+        return this.mozneNasledujuceSpojeVodic;
+    }
+    public ArrayList<Spoj> getMoznePredchadzajuceSpojeVodic()
+    {
+        return this.moznePredchadzajuceSpojeVodic;
+    }
+    public String[] vypis(LinkedHashMap<Dvojica<Integer, Integer>, Usek> useky)
+    {
+        String[] udaje = new String[9];
         udaje[0] = String.valueOf(this.idLinky);
         udaje[1] = String.valueOf(this.idSpoja);
         udaje[2] = String.valueOf(this.miestoOdchodu.getID());
         udaje[3] = this.casOdchodu.toString().substring(0, 5);
         udaje[4] = String.valueOf(this.miestoPrichodu.getID());
         udaje[5] = this.casPrichodu.toString().substring(0, 5);
+
+        if(this.predchadzajuci != null)
+        {
+            int prejazd = useky.get(new Dvojica<>(this.predchadzajuci.getMiestoPrichodu().getID(), this.miestoOdchodu.getID())).getCasPrejazdu();
+            udaje[6] = String.valueOf(prejazd);
+        }
+        else
+        {
+            int prejazd = useky.get(new Dvojica<>(Model.DEPO, this.getMiestoOdchodu().getID())).getCasPrejazdu();
+            udaje[6] = String.valueOf(prejazd);
+        }
+
+        if(this.nasledujuci != null)
+        {
+            int prejazd = useky.get(new Dvojica<>(this.miestoPrichodu.getID(), this.nasledujuci.getMiestoOdchodu().getID())).getCasPrejazdu();
+            udaje[7] = String.valueOf(prejazd);
+            int prestavka = this.nasledujuci.getCasOdchoduMinuty() - this.getCasPrichoduMinuty() - prejazd;
+            udaje[8] = String.valueOf(prestavka);
+        }
+        else
+        {
+            int prejazd = useky.get(new Dvojica<>(this.getMiestoPrichodu().getID(), Model.DEPO)).getCasPrejazdu();
+            udaje[7] = String.valueOf(prejazd);
+            udaje[8] = String.valueOf(0);
+        }
+
         return udaje;
+    }
+    public Spoj getNasledujuci() {
+        return nasledujuci;
+    }
+    public void setNasledujuci(Spoj nasledujuci) {
+        this.nasledujuci = nasledujuci;
+    }
+    public Spoj getPredchadzajuci() {
+        return predchadzajuci;
+    }
+    public void setPredchadzajuci(Spoj predchadzajuci) {
+        this.predchadzajuci = predchadzajuci;
+    }
+
+    public boolean isKoniecZmeny() {
+        return koniecZmeny;
+    }
+
+    public void setKoniecZmeny(boolean koniecZmeny) {
+        this.koniecZmeny = koniecZmeny;
     }
 }
