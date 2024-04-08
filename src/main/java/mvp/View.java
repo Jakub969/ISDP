@@ -12,9 +12,10 @@ public class View {
         //vypisVsetkySpoje();
         //this.vypisVsetkyLinky();
         //vykonajMinimalizaciuAutobusov();
+        //vykonajMinimalizaciuPrazdnychPrejazdov();
         //vykonajMinimalizaciuVodicov();
         //vykonajMaximalizaciuObsadenosti();
-        vykonajMinimalizaciuNakladovObs();
+        //vykonajMaximalizaciuObsluzenychSpojov();
     }
 
     public void vypisVsetkySpoje()
@@ -91,7 +92,7 @@ public class View {
     {
         ArrayList<String[]> turnusyUdaje = new ArrayList<>();
         ArrayList<String[][]> spojeUdaje = new ArrayList<>();
-        String prazdnePrejazdy = this.presenter.vykonajMinimalizaciuPrazdnychPrejazdov(turnusyUdaje, spojeUdaje);
+        String prazdnePrejazdy = this.presenter.vykonajMinimalizaciuPrazdnychPrejazdov(4, turnusyUdaje, spojeUdaje);
 
         System.out.println("Súčet prázdnych prejazdov: " + prazdnePrejazdy);
 
@@ -130,7 +131,7 @@ public class View {
     {
         ArrayList<String[]> turnusyUdaje = new ArrayList<>();
         ArrayList<String[][]> spojeUdaje = new ArrayList<>();
-        String prazdnePrejazdy = this.presenter.vykonajMinimalizaciuVodicov(turnusyUdaje, spojeUdaje);
+        String prazdnePrejazdy = this.presenter.vykonajMinimalizaciuVodicov(4, turnusyUdaje, spojeUdaje);
 
         System.out.println("Počet vodičov: " + prazdnePrejazdy);
 
@@ -169,7 +170,7 @@ public class View {
     {
         ArrayList<String[]> turnusyUdaje = new ArrayList<>();
         ArrayList<String[][]> spojeUdaje = new ArrayList<>();
-        this.presenter.vykonajMaximalizaciuObsadenosti(turnusyUdaje, spojeUdaje);
+        this.presenter.vykonajMaximalizaciuObsadenosti(2, 3, turnusyUdaje, spojeUdaje);
 
         int counter = 1;
         System.out.println("Tur \t Zač \t Kon");
@@ -202,11 +203,11 @@ public class View {
         }
     }
 
-    public void vykonajMinimalizaciuNakladovObs()
+    public void vykonajMaximalizaciuObsluzenychSpojov()
     {
         ArrayList<String[]> turnusyUdaje = new ArrayList<>();
         ArrayList<String[][]> spojeUdaje = new ArrayList<>();
-        this.presenter.vykonajMinimalizaciuNakladovObs(turnusyUdaje, spojeUdaje);
+        this.presenter.vykonajMaximalizaciuObsluzenychSpojov(0.660494, 2, 3, turnusyUdaje, spojeUdaje);
 
         int counter = 1;
         System.out.println("Tur \t Zač \t Kon");

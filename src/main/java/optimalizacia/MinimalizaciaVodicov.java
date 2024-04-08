@@ -23,12 +23,13 @@ public class MinimalizaciaVodicov
     private ArrayList<Turnus> turnusy;
     private int pocetVodicov;
 
-    public MinimalizaciaVodicov(LinkedHashMap<Integer, Spoj> pSpoje, LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky,
+    public MinimalizaciaVodicov(int pPocetBusov,
+                                LinkedHashMap<Integer, Spoj> pSpoje, LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky,
                                 LinkedHashMap<Dvojica<Integer, Integer>, Integer> DT,
                                 LinkedHashMap<Dvojica<Integer, Integer>, Integer> T) throws GRBException
     {
         this.pripravModel(pSpoje);
-        this.vypocitajModel(pSpoje, pUseky, DT, T);
+        this.vypocitajModel(pPocetBusov, pSpoje, pUseky, DT, T);
         this.vytvorTurnusy(pSpoje);
     }
 
@@ -49,7 +50,8 @@ public class MinimalizaciaVodicov
         this.z = new LinkedHashMap<>();
         this.turnusy = new ArrayList<>();
     }
-    private void vypocitajModel(Map<Integer, Spoj> pSpoje, LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky,
+    private void vypocitajModel(int pPocetBusov,
+                                Map<Integer, Spoj> pSpoje, LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky,
                                 LinkedHashMap<Dvojica<Integer, Integer>, Integer> DT,
                                 LinkedHashMap<Dvojica<Integer, Integer>, Integer> T) throws GRBException
     {
@@ -62,7 +64,7 @@ public class MinimalizaciaVodicov
         //model.set(GRB.IntParam.MIPFocus, 1);
 
         //model.getEnv().set(GRB.DoubleParam.TimeLimit, 100.0);
-       // model.set(GRB.DoubleParam.MIPGap, 0.15);
+         model.set(GRB.DoubleParam.MIPGap, 0.20);
 
         // Vytvoriť všetky premenné x_ij
         Map<Dvojica<Integer, Integer>, Integer> cx = new LinkedHashMap<>();
@@ -244,7 +246,7 @@ public class MinimalizaciaVodicov
         {
             expr3.addTerm(1, var);
         }
-        model.addConstr(expr3, GRB.EQUAL, pSpoje.size() - 4, "3_total_connections");
+        model.addConstr(expr3, GRB.EQUAL, pSpoje.size() - pPocetBusov, "3_total_connections");
 
         // Pridať 4. typ podmienok - t_j ≥ t_i + DT_ij*x_ij + (cpr_j - cod_j) - K*(1 - x_ij)  pre (i,j) ∈ E
         for (Spoj spoj_j : pSpoje.values())       // pre j = 1..n

@@ -17,14 +17,14 @@ public class MaximalizaciaObsadenosti {
     private GRBVar y_max;
     private ArrayList<Turnus> turnusy;
 
-    public MaximalizaciaObsadenosti(LinkedHashMap<Integer, Linka> pLinky,
+    public MaximalizaciaObsadenosti(int pPocetBusov, int pPocetVodicov, LinkedHashMap<Integer, Linka> pLinky,
                                     LinkedHashMap<Integer, Spoj> pSpoje,
                                     LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky,
                                 LinkedHashMap<Dvojica<Integer, Integer>, Integer> DT,
                                 LinkedHashMap<Dvojica<Integer, Integer>, Integer> T) throws GRBException
     {
         this.pripravModel(pSpoje);
-        this.vypocitajModel(pLinky, pSpoje, pUseky, DT, T);
+        this.vypocitajModel(pPocetBusov, pPocetVodicov, pLinky, pSpoje, pUseky, DT, T);
         this.vytvorTurnusy(pSpoje);
     }
 
@@ -47,7 +47,8 @@ public class MaximalizaciaObsadenosti {
         this.turnusy = new ArrayList<>();
     }
 
-    private void vypocitajModel(Map<Integer, Linka> pLinky,
+    private void vypocitajModel(int pPocetBusov, int pPocetVodicov,
+                                Map<Integer, Linka> pLinky,
                                 Map<Integer, Spoj> pSpoje,
                                 LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky,
                                 LinkedHashMap<Dvojica<Integer, Integer>, Integer> DT,
@@ -58,11 +59,8 @@ public class MaximalizaciaObsadenosti {
         env.set("logFile", "maxObsadenost.log");
         env.start();
         GRBModel model = new GRBModel(env);
-        //model.set(GRB.IntParam.ConcurrentMethod, 1);
-        //model.set(GRB.IntParam.MIPFocus, 1);
 
-        //model.getEnv().set(GRB.DoubleParam.TimeLimit, 100.0);
-        //model.set(GRB.DoubleParam.MIPGap, 0.15);
+        model.set(GRB.DoubleParam.MIPGap, 0.112);
 
         // Vytvoriť všetky premenné x_ij
         for (Spoj spoj_i : pSpoje.values())
@@ -207,7 +205,7 @@ public class MaximalizaciaObsadenosti {
             GRBVar u_j = this.u.get(j);
             expr4.addTerm(1, u_j);
         }
-        model.addConstr(expr4, GRB.LESS_EQUAL, 3, "4_total_buses");
+        model.addConstr(expr4, GRB.EQUAL, pPocetBusov, "4_total_buses");
 
         // Pridať 5. typ podmienok - ∑_(j∈S) [u_j] + ∑_(ij,(i,j)∈F) [y_ij] ≤ V
         GRBLinExpr expr5 = new GRBLinExpr();
@@ -230,7 +228,7 @@ public class MaximalizaciaObsadenosti {
             }
         }
 
-        model.addConstr(expr5, GRB.LESS_EQUAL, 7, "5_total_drivers");
+        model.addConstr(expr5, GRB.EQUAL, pPocetVodicov, "5_total_drivers");
 
         // Pridať 6. typ podmienok - t_j ≥ t_i + DT_ij*x_ij + (cpr_j - cod_j) - K*(1 - x_ij)  pre (i,j) ∈ E
         for (Spoj spoj_j : pSpoje.values())       // pre j = 1..n
@@ -392,9 +390,11 @@ public class MaximalizaciaObsadenosti {
 
     public void vytvorTurnusy(LinkedHashMap<Integer, Spoj> pSpoje) {
         // Z rozhodovacích premenných x_ij získaj všetky prepojenia spojov, a prepoj spoje
+        int count = 0;
         for (Dvojica<Integer, Integer> x_ij : x.keySet()) {
             try {
                 if (x.get(x_ij).get(GRB.DoubleAttr.X) == 1.0) {      //získaj hodnotu riešenia x (0 či 1)
+
                     int spoj_i_id = x_ij.prva();
                     Spoj spoj_i = pSpoje.get(spoj_i_id);
 
@@ -414,6 +414,7 @@ public class MaximalizaciaObsadenosti {
         {
             try {
                 if (y.get(y_ij).get(GRB.DoubleAttr.X) == 1.0) {      //získaj hodnotu riešenia y (0 či 1)
+
                     int spoj_i_id = y_ij.prva();
                     Spoj spoj_i = pSpoje.get(spoj_i_id);
 

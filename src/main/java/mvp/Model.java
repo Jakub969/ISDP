@@ -9,10 +9,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 public class Model {
-    public static final int REZERVA_1 = 5;
-    public static final int REZERVA_2 = 10;
+    public static final int REZERVA_1 = 0;
+    public static final int REZERVA_2 = 0;
     public static final int DEPO = 59;
-    public static final int C_VODIC = 50;
+    public static final int C_VODIC = 100;
     public static final int C_KM = 2;
     public static final int K = 10000;
 
@@ -24,6 +24,7 @@ public class Model {
     private LinkedHashMap<Integer, Spoj> spoje;
     private LinkedHashMap<Integer, Zastavka> zastavky;
     private LinkedHashMap<Integer, Linka> linky;
+
     public Model()
     {
         this.useky = new LinkedHashMap<>();
@@ -67,16 +68,16 @@ public class Model {
 
                 if (casPrichodu_i + casPrejazdu + REZERVA_1 <= casOdchodu_j)
                 {
-                    System.out.println(spoj_i.getID() + " : " + spoj_j.getID());
+                    //System.out.println(spoj_i.getID() + " : " + spoj_j.getID());
                     int casMedziSpojmi = spoj_j.getCasOdchoduMinuty() - spoj_i.getCasPrichoduMinuty();
                     int casJazdy = (casMedziSpojmi - casPrejazdu < 10) ? casMedziSpojmi : casPrejazdu;
                     this.DT.put(new Dvojica<>(spoj_i.getID(), spoj_j.getID()), casJazdy);
                     this.T.put(new Dvojica<>(spoj_i.getID(), spoj_j.getID()), casMedziSpojmi);
 
-                    System.out.println("cas prejazdu: " + casPrejazdu);
-                    System.out.println("DT: " + casJazdy);
-                    System.out.println("T:" + casMedziSpojmi);
-                    System.out.println();
+                    //System.out.println("cas prejazdu: " + casPrejazdu);
+                    //System.out.println("DT: " + casJazdy);
+                    //System.out.println("T:" + casMedziSpojmi);
+                    //System.out.println();
                     spoj_i.pridajNaslednostSpoja(spoj_j);
                 }
 
@@ -136,11 +137,13 @@ public class Model {
         }
     }
 
-    public String vykonajMinimalizaciuPrazdnychPrejazdov(ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
+    public String vykonajMinimalizaciuPrazdnychPrejazdov(int pPocetBusov,
+                                                         ArrayList<String[]> pTurnusyUdaje,
+                                                         ArrayList<String[][]> pSpojeUdaje)
     {
         try
         {
-            MinimalizaciaPrejazdov minBusov = new MinimalizaciaPrejazdov(this.spoje, this.useky);
+            MinimalizaciaPrejazdov minBusov = new MinimalizaciaPrejazdov(pPocetBusov, this.spoje, this.useky);
             int prazdnePrejazdy = minBusov.getPrazdnePrejazdy();
             ArrayList<Turnus> turnusy = minBusov.getTurnusy();
             for (Turnus turnus: turnusy)
@@ -156,11 +159,12 @@ public class Model {
         }
     }
 
-    public String vykonajMinimalizaciuVodicov(ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
+    public String vykonajMinimalizaciuVodicov(int pPocetBusov,
+                                              ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
     {
         try
         {
-            MinimalizaciaVodicov minVodicov = new MinimalizaciaVodicov(this.spoje, this.useky, this.DT, this.T);
+            MinimalizaciaVodicov minVodicov = new MinimalizaciaVodicov(pPocetBusov, this.spoje, this.useky, this.DT, this.T);
             int pocetVodicov = minVodicov.getPocetVodicov();
             ArrayList<Turnus> turnusy = minVodicov.getTurnusy();
             for (Turnus turnus: turnusy)
@@ -176,12 +180,15 @@ public class Model {
         }
     }
 
-    public String vykonajMaximalizaciuObsadenosti(ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
+    public String vykonajMaximalizaciuObsadenosti(int pPocetBusov,
+                                                  int pPocetVodicov,
+                                                  ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
     {
         try
         {
-            MaximalizaciaObsadenosti maxObs = new MaximalizaciaObsadenosti(this.linky, this.spoje, this.useky, this.DT, this.T);
+            MaximalizaciaObsadenosti maxObs = new MaximalizaciaObsadenosti(pPocetBusov, pPocetVodicov,this.linky, this.spoje, this.useky, this.DT, this.T);
             ArrayList<Turnus> turnusy = maxObs.getTurnusy();
+
             for (Turnus turnus: turnusy)
             {
                 pTurnusyUdaje.add(turnus.vypis(this.useky));
@@ -195,11 +202,13 @@ public class Model {
         }
     }
 
-    public String vykonajMinimalizaciuNakladovObs(ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
+    public String vykonajMaximalizaciuObsluzenychSpojov(double y, int pPocetBusov, int pPocetVodicov,
+                                                        ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
     {
         try
         {
-            MinimalizaciaNakladovObsadenost maxObs = new MinimalizaciaNakladovObsadenost(this.linky, this.spoje, this.useky, this.DT, this.T);
+            MaximalizaciaObsluzenychSpojov maxObs = new MaximalizaciaObsluzenychSpojov(y, pPocetBusov, pPocetVodicov,
+                    this.linky, this.spoje, this.useky, this.DT, this.T);
             ArrayList<Turnus> turnusy = maxObs.getTurnusy();
             for (Turnus turnus: turnusy)
             {

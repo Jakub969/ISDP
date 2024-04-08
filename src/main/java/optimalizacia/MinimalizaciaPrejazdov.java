@@ -19,10 +19,12 @@ public class MinimalizaciaPrejazdov
     private ArrayList<Turnus> turnusy;
     private int prazdnePrejazdy;
 
-    public MinimalizaciaPrejazdov(LinkedHashMap<Integer, Spoj> pSpoje, LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky) throws GRBException
+    public MinimalizaciaPrejazdov(int pPocetBusov,
+                                  LinkedHashMap<Integer, Spoj> pSpoje,
+                                  LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky) throws GRBException
     {
         this.pripravModel(pSpoje);
-        this.vypocitajModel(pSpoje, pUseky);
+        this.vypocitajModel(pPocetBusov, pSpoje, pUseky);
         this.vytvorTurnusy(pSpoje);
     }
 
@@ -41,7 +43,9 @@ public class MinimalizaciaPrejazdov
         this.turnusy = new ArrayList<>();
     }
 
-    private void vypocitajModel(Map<Integer, Spoj> pSpoje, LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky) throws GRBException
+    private void vypocitajModel(int pPocetBusov,
+                                Map<Integer, Spoj> pSpoje,
+                                LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky) throws GRBException
     {
         // Create a new optimization model
         GRBEnv env = new GRBEnv();
@@ -165,11 +169,12 @@ public class MinimalizaciaPrejazdov
         {
             expr.addTerm(1, var);
         }
-        model.addConstr(expr, GRB.EQUAL, pSpoje.size() - 39, "total_connections");
+        model.addConstr(expr, GRB.EQUAL, pSpoje.size() - pPocetBusov, "total_connections");
 
         model.update();
 
         //optimalizuj model
+        model.write("prazdnePrejazdy.lp");
         model.optimize();
         this.prazdnePrejazdy = (int)model.get(GRB.DoubleAttr.ObjVal);
     }

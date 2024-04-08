@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class MinimalizaciaNakladovObsadenost {
+public class MaximalizaciaObsluzenychSpojov {
     private Map<Dvojica<Integer, Integer>, GRBVar> x;
     private Map<Dvojica<Integer, Integer>, GRBVar> y;
     private Map<Integer, GRBVar> t;
@@ -21,16 +21,16 @@ public class MinimalizaciaNakladovObsadenost {
     private double y_max;
     private ArrayList<Turnus> turnusy;
 
-    public MinimalizaciaNakladovObsadenost(LinkedHashMap<Integer, Linka> pLinky,
-                                    LinkedHashMap<Integer, Spoj> pSpoje,
-                                    LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky,
-                                    LinkedHashMap<Dvojica<Integer, Integer>, Integer> DT,
-                                    LinkedHashMap<Dvojica<Integer, Integer>, Integer> T) throws GRBException
+    public MaximalizaciaObsluzenychSpojov(double y, int pPocetBusov, int pPocetVodicov,
+                                          LinkedHashMap<Integer, Linka> pLinky,
+                                          LinkedHashMap<Integer, Spoj> pSpoje,
+                                          LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky,
+                                          LinkedHashMap<Dvojica<Integer, Integer>, Integer> DT,
+                                          LinkedHashMap<Dvojica<Integer, Integer>, Integer> T) throws GRBException
     {
-        MaximalizaciaObsadenosti maxObs = new MaximalizaciaObsadenosti(pLinky, pSpoje, pUseky, DT,T);
-        this.y_max = maxObs.getYmax();
+        this.y_max = y;
         this.pripravModel(pSpoje);
-        this.vypocitajModel(pLinky, pSpoje, pUseky, DT, T);
+        this.vypocitajModel(pPocetBusov, pPocetVodicov, pLinky, pSpoje, pUseky, DT, T);
         this.vytvorTurnusy(pSpoje);
     }
 
@@ -53,7 +53,8 @@ public class MinimalizaciaNakladovObsadenost {
         this.turnusy = new ArrayList<>();
     }
 
-    private void vypocitajModel(Map<Integer, Linka> pLinky,
+    private void vypocitajModel(int pPocetBusov, int pPocetVodicov,
+                                Map<Integer, Linka> pLinky,
                                 Map<Integer, Spoj> pSpoje,
                                 LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky,
                                 LinkedHashMap<Dvojica<Integer, Integer>, Integer> DT,
@@ -61,9 +62,11 @@ public class MinimalizaciaNakladovObsadenost {
     {
         // Create a new optimization model
         GRBEnv env = new GRBEnv();
-        env.set("logFile", "minNakladovObs.log");
+        env.set("logFile", "maxObsSpojov.log");
         env.start();
         GRBModel model = new GRBModel(env);
+
+        //model.set(GRB.DoubleParam.MIPGap, 0.427);
 
         // Vytvoriť všetky premenné x_ij
         Map<Dvojica<Integer, Integer>, Integer> cx = new LinkedHashMap<>();
@@ -138,12 +141,24 @@ public class MinimalizaciaNakladovObsadenost {
         // Nastaviť účelovú funkciu -
         GRBLinExpr objExpr = new GRBLinExpr();
 
-        objExpr.addConstant(Model.C_VODIC * pSpoje.size());
+
+        objExpr.addConstant(Model.K * pSpoje.size());
 
         for (GRBVar var : this.o.values())
         {
-            objExpr.addTerm(-Model.C_VODIC, var);
+            objExpr.addTerm(-Model.K, var);
         }
+
+
+/*
+        for (Spoj spoj_i: pSpoje.values())
+        {
+            int i = spoj_i.getID();
+            int obsSpoja = obs.get(i);
+            GRBVar o_i = this.o.get(i);
+            objExpr.addTerm(10*obsSpoja, o_i);
+        }
+*/
 
         //  + c_km * ( ∑_(ij,(i,j)∈E) [m(mpr_i, mod_j) * x_ij]
         //           + ∑_(ij,(i,j)∈F) [(m(mpr_i,D) + m(D,mod_j)) * y_ij]
@@ -268,7 +283,7 @@ public class MinimalizaciaNakladovObsadenost {
             GRBVar u_j = this.u.get(j);
             expr4.addTerm(1, u_j);
         }
-        model.addConstr(expr4, GRB.LESS_EQUAL, 3, "4_total_buses");
+        model.addConstr(expr4, GRB.EQUAL, pPocetBusov, "4_total_buses");
 
         // Pridať 5. typ podmienok - ∑_(j∈S) [u_j] + ∑_(ij,(i,j)∈F) [y_ij] ≤ V
         GRBLinExpr expr5 = new GRBLinExpr();
@@ -291,7 +306,7 @@ public class MinimalizaciaNakladovObsadenost {
             }
         }
 
-        model.addConstr(expr5, GRB.LESS_EQUAL, 8, "5_total_drivers");
+        model.addConstr(expr5, GRB.EQUAL, pPocetVodicov, "5_total_drivers");
 
         // Pridať 6. typ podmienok - t_j ≥ t_i + DT_ij*x_ij + (cpr_j - cod_j) - K*(1 - x_ij)  pre (i,j) ∈ E
         for (Spoj spoj_j : pSpoje.values())       // pre j = 1..n
@@ -427,7 +442,7 @@ public class MinimalizaciaNakladovObsadenost {
         model.update();
 
         //optimalizuj model
-        model.write("minNakladovObs.lp");
+        model.write("maxObsSpojov.lp");
         model.optimize();
 
         // ------
@@ -448,7 +463,6 @@ public class MinimalizaciaNakladovObsadenost {
                 e.printStackTrace();
             }
         }
-        System.out.println(y_max);
     }
 
     public void vytvorTurnusy(LinkedHashMap<Integer, Spoj> pSpoje) {

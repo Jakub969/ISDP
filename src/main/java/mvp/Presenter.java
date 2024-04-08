@@ -27,23 +27,27 @@ public class Presenter {
         return this.model.vykonajMinimalizaciuAutobusov(pTurnusyUdaje, pSpojeUdaje);
     }
 
-    public String vykonajMinimalizaciuPrazdnychPrejazdov(ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
+    public String vykonajMinimalizaciuPrazdnychPrejazdov(int pPocetBusov,
+                                                         ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
     {
-        return this.model.vykonajMinimalizaciuPrazdnychPrejazdov(pTurnusyUdaje, pSpojeUdaje);
+        return this.model.vykonajMinimalizaciuPrazdnychPrejazdov(pPocetBusov, pTurnusyUdaje, pSpojeUdaje);
     }
 
-    public String vykonajMinimalizaciuVodicov(ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
+    public String vykonajMinimalizaciuVodicov(int pPocetBusov, ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
     {
-        return this.model.vykonajMinimalizaciuVodicov(pTurnusyUdaje, pSpojeUdaje);
+        return this.model.vykonajMinimalizaciuVodicov(pPocetBusov, pTurnusyUdaje, pSpojeUdaje);
     }
 
-    public String vykonajMaximalizaciuObsadenosti(ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
+    public String vykonajMaximalizaciuObsadenosti(int pPocetBusov,
+                                                  int pPocetVodicov,
+                                                  ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
     {
-        return this.model.vykonajMaximalizaciuObsadenosti(pTurnusyUdaje, pSpojeUdaje);
+        return this.model.vykonajMaximalizaciuObsadenosti(pPocetBusov, pPocetVodicov, pTurnusyUdaje, pSpojeUdaje);
     }
 
-    public String vykonajMinimalizaciuNakladovObs(ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
+    public String vykonajMaximalizaciuObsluzenychSpojov(double y, int pPocetBusov, int pPocetVodicov,
+                                                        ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
     {
-        return this.model.vykonajMinimalizaciuNakladovObs(pTurnusyUdaje, pSpojeUdaje);
+        return this.model.vykonajMaximalizaciuObsluzenychSpojov(y, pPocetBusov, pPocetVodicov, pTurnusyUdaje, pSpojeUdaje);
     }
 }
