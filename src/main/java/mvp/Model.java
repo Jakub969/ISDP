@@ -3,9 +3,7 @@ package mvp;
 import data.*;
 
 import files.LoaderOfData;
-import optimalizacia.MinimalizaciaAutobusov;
-import optimalizacia.MinimalizaciaPrejazdov;
-import optimalizacia.MinimalizaciaVodicov;
+import optimalizacia.*;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -96,7 +94,7 @@ public class Model {
     //TODO prerobiť - bez vypisov o časoch prejazdov
     public String[][] vypisVsetkySpoje()
     {
-        String[][] udajeSpoje = new String[this.spoje.size()][9];
+        String[][] udajeSpoje = new String[this.spoje.size()][10];
         int counter = 0;
         for (Spoj spoj_i: this.spoje.values())
         {
@@ -171,6 +169,44 @@ public class Model {
                 pSpojeUdaje.add(turnus.vypisSpoje(this.useky));
             }
             return String.valueOf(pocetVodicov);
+        }
+        catch (Exception e)
+        {
+            return "Chyba pri načítavaní úsekov!";
+        }
+    }
+
+    public String vykonajMaximalizaciuObsadenosti(ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
+    {
+        try
+        {
+            MaximalizaciaObsadenosti maxObs = new MaximalizaciaObsadenosti(this.linky, this.spoje, this.useky, this.DT, this.T);
+            ArrayList<Turnus> turnusy = maxObs.getTurnusy();
+            for (Turnus turnus: turnusy)
+            {
+                pTurnusyUdaje.add(turnus.vypis(this.useky));
+                pSpojeUdaje.add(turnus.vypisSpoje(this.useky));
+            }
+            return "";
+        }
+        catch (Exception e)
+        {
+            return "Chyba pri načítavaní úsekov!";
+        }
+    }
+
+    public String vykonajMinimalizaciuNakladovObs(ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
+    {
+        try
+        {
+            MinimalizaciaNakladovObsadenost maxObs = new MinimalizaciaNakladovObsadenost(this.linky, this.spoje, this.useky, this.DT, this.T);
+            ArrayList<Turnus> turnusy = maxObs.getTurnusy();
+            for (Turnus turnus: turnusy)
+            {
+                pTurnusyUdaje.add(turnus.vypis(this.useky));
+                pSpojeUdaje.add(turnus.vypisSpoje(this.useky));
+            }
+            return "";
         }
         catch (Exception e)
         {

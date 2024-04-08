@@ -6,17 +6,20 @@ import java.util.LinkedHashMap;
 public class Linka
 {
     private final int ID;
+    private int obsadenost;
     private ArrayList<Spoj> spoje;
 
     public Linka(int pID)
     {
         this.ID = pID;
         this.spoje = new ArrayList<>();
+        this.obsadenost = 0;
     }
 
     public void pridajSpoj(Spoj pSpoj)
     {
         this.spoje.add(pSpoj);
+        this.obsadenost += pSpoj.getObsadenost();
     }
     public String[][] vypis(LinkedHashMap<Dvojica<Integer, Integer>, Usek> useky)
     {
@@ -32,5 +35,14 @@ public class Linka
 
     public int getID() {
         return ID;
+    }
+
+    public ArrayList<Spoj> getSpoje()
+    {
+        return this.spoje;
+    }
+
+    public int getObsadenost() {
+        return obsadenost;
     }
 }

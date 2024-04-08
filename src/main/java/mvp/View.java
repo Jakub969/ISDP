@@ -12,7 +12,9 @@ public class View {
         //vypisVsetkySpoje();
         //this.vypisVsetkyLinky();
         //vykonajMinimalizaciuAutobusov();
-        vykonajMinimalizaciuVodicov();
+        //vykonajMinimalizaciuVodicov();
+        //vykonajMaximalizaciuObsadenosti();
+        vykonajMinimalizaciuNakladovObs();
     }
 
     public void vypisVsetkySpoje()
@@ -131,6 +133,80 @@ public class View {
         String prazdnePrejazdy = this.presenter.vykonajMinimalizaciuVodicov(turnusyUdaje, spojeUdaje);
 
         System.out.println("Počet vodičov: " + prazdnePrejazdy);
+
+        int counter = 1;
+        System.out.println("Tur \t Zač \t Kon");
+        for (String[] turnus: turnusyUdaje)
+        {
+            System.out.print(counter + "\t");
+            for (String udaj : turnus) {
+                System.out.print(udaj + "\t");
+            }
+            System.out.println();
+            counter++;
+        }
+
+        System.out.println();
+        System.out.println("Lin \t spoj \t mod \t cod \t mpr \t cpr");
+        counter = 1;
+        for (String[][] turnusUdaje : spojeUdaje)
+        {
+            System.out.println("Turnus " + counter);
+            for (String[] spojUdaje : turnusUdaje)
+            {
+                for (String udaj : spojUdaje)
+                {
+                    System.out.print(udaj + "\t");
+                }
+                System.out.println();
+            }
+            System.out.println();
+            counter++;
+        }
+    }
+
+    public void vykonajMaximalizaciuObsadenosti()
+    {
+        ArrayList<String[]> turnusyUdaje = new ArrayList<>();
+        ArrayList<String[][]> spojeUdaje = new ArrayList<>();
+        this.presenter.vykonajMaximalizaciuObsadenosti(turnusyUdaje, spojeUdaje);
+
+        int counter = 1;
+        System.out.println("Tur \t Zač \t Kon");
+        for (String[] turnus: turnusyUdaje)
+        {
+            System.out.print(counter + "\t");
+            for (String udaj : turnus) {
+                System.out.print(udaj + "\t");
+            }
+            System.out.println();
+            counter++;
+        }
+
+        System.out.println();
+        System.out.println("Lin \t spoj \t mod \t cod \t mpr \t cpr");
+        counter = 1;
+        for (String[][] turnusUdaje : spojeUdaje)
+        {
+            System.out.println("Turnus " + counter);
+            for (String[] spojUdaje : turnusUdaje)
+            {
+                for (String udaj : spojUdaje)
+                {
+                    System.out.print(udaj + "\t");
+                }
+                System.out.println();
+            }
+            System.out.println();
+            counter++;
+        }
+    }
+
+    public void vykonajMinimalizaciuNakladovObs()
+    {
+        ArrayList<String[]> turnusyUdaje = new ArrayList<>();
+        ArrayList<String[][]> spojeUdaje = new ArrayList<>();
+        this.presenter.vykonajMinimalizaciuNakladovObs(turnusyUdaje, spojeUdaje);
 
         int counter = 1;
         System.out.println("Tur \t Zač \t Kon");

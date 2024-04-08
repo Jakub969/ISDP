@@ -63,6 +63,8 @@ public class LoaderOfData {
             Zastavka miestoPrichodu = pZastavky.get(miestoPrichoduID);
             LocalTime casPrichodu = LocalTime.parse(stlpce[5], formatter);
 
+            int obsadenostSpoja = Integer.parseInt(stlpce[8]);
+
             // Create an array containing trip information
             Linka linka;
             if(pLinky.containsKey(idLinky))
@@ -72,7 +74,7 @@ public class LoaderOfData {
                 linka = new Linka(idLinky);
                 pLinky.put(idLinky, linka);
             }
-            Spoj spoj = new Spoj(id, idLinky, idSpoja, miestoOdchodu, casOdchodu, miestoPrichodu, casPrichodu);
+            Spoj spoj = new Spoj(id, idLinky, idSpoja, miestoOdchodu, casOdchodu, miestoPrichodu, casPrichodu, obsadenostSpoja);
             pSpoje.put(id, spoj);
             linka.pridajSpoj(spoj);
         }

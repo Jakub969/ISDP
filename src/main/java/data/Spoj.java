@@ -38,9 +38,11 @@ public class Spoj
     private Spoj predchadzajuci;
     private Spoj nasledujuci;
     private boolean koniecZmeny;
-
+    private final int obsadenost;
+    private boolean jeObsluzeny;
     public Spoj(int pID, int pIdLinky, int pIdSpoja,
-                Zastavka pMiestoOdchodu, LocalTime pCasOdchodu, Zastavka pMiestoPrichodu, LocalTime pCasPrichodu)
+                Zastavka pMiestoOdchodu, LocalTime pCasOdchodu, Zastavka pMiestoPrichodu, LocalTime pCasPrichodu,
+                int pObsadenost)
     {
         this.ID = pID;
         this.idLinky = pIdLinky;
@@ -49,6 +51,7 @@ public class Spoj
         this.casOdchodu = pCasOdchodu;
         this.miestoPrichodu = pMiestoPrichodu;
         this.casPrichodu = pCasPrichodu;
+        this.obsadenost = pObsadenost;
         this.mozneNasledujuceSpoje = new ArrayList<>();
         this.moznePredchadzajuceSpoje = new ArrayList<>();
         this.mozneNasledujuceSpojeVodic = new ArrayList<>();
@@ -56,6 +59,7 @@ public class Spoj
         this.predchadzajuci = null;
         this.nasledujuci = null;
         this.koniecZmeny = false;
+        this.jeObsluzeny = false;
     }
 
     public int getID()
@@ -143,7 +147,7 @@ public class Spoj
     }
     public String[] vypis(LinkedHashMap<Dvojica<Integer, Integer>, Usek> useky)
     {
-        String[] udaje = new String[9];
+        String[] udaje = new String[10];
         udaje[0] = String.valueOf(this.idLinky);
         udaje[1] = String.valueOf(this.idSpoja);
         udaje[2] = String.valueOf(this.miestoOdchodu.getID());
@@ -176,6 +180,7 @@ public class Spoj
             udaje[8] = String.valueOf(0);
         }
 
+        udaje[9] = String.valueOf(this.obsadenost);
         return udaje;
     }
     public Spoj getNasledujuci() {
@@ -197,5 +202,17 @@ public class Spoj
 
     public void setKoniecZmeny(boolean koniecZmeny) {
         this.koniecZmeny = koniecZmeny;
+    }
+
+    public int getObsadenost() {
+        return obsadenost;
+    }
+
+    public boolean isJeObsluzeny() {
+        return jeObsluzeny;
+    }
+
+    public void setJeObsluzeny(boolean jeObsluzeny) {
+        this.jeObsluzeny = jeObsluzeny;
     }
 }

@@ -36,4 +36,14 @@ public class Presenter {
     {
         return this.model.vykonajMinimalizaciuVodicov(pTurnusyUdaje, pSpojeUdaje);
     }
+
+    public String vykonajMaximalizaciuObsadenosti(ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
+    {
+        return this.model.vykonajMaximalizaciuObsadenosti(pTurnusyUdaje, pSpojeUdaje);
+    }
+
+    public String vykonajMinimalizaciuNakladovObs(ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
+    {
+        return this.model.vykonajMinimalizaciuNakladovObs(pTurnusyUdaje, pSpojeUdaje);
+    }
 }
