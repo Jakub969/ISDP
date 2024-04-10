@@ -1,10 +1,7 @@
 package optimalizacia;
 
 import com.gurobi.gurobi.*;
-import data.Dvojica;
-import data.Spoj;
-import data.Turnus;
-import data.Usek;
+import data.*;
 import mvp.Model;
 
 import java.util.ArrayList;
@@ -16,8 +13,8 @@ public class MinimalizaciaPrejazdov
     private Map<Dvojica<Integer, Integer>, GRBVar> x;
     private Map<Integer, GRBVar> u;
     private Map<Integer, GRBVar> v;
-    private ArrayList<Turnus> turnusy;
     private int prazdnePrejazdy;
+    private GRBModel model;
 
     public MinimalizaciaPrejazdov(int pPocetBusov,
                                   LinkedHashMap<Integer, Spoj> pSpoje,
@@ -25,7 +22,6 @@ public class MinimalizaciaPrejazdov
     {
         this.pripravModel(pSpoje);
         this.vypocitajModel(pPocetBusov, pSpoje, pUseky);
-        this.vytvorTurnusy(pSpoje);
     }
 
     private void pripravModel(LinkedHashMap<Integer, Spoj> pSpoje)
@@ -40,7 +36,6 @@ public class MinimalizaciaPrejazdov
         this.x = new LinkedHashMap<>();
         this.u = new LinkedHashMap<>();
         this.v = new LinkedHashMap<>();
-        this.turnusy = new ArrayList<>();
     }
 
     private void vypocitajModel(int pPocetBusov,
@@ -51,7 +46,7 @@ public class MinimalizaciaPrejazdov
         GRBEnv env = new GRBEnv();
         env.set("logFile", "minPrejazdov.log");
         env.start();
-        GRBModel model = new GRBModel(env);
+        model = new GRBModel(env);
 
         // Vytvoriť všetky premenné x_ij
         Map<Dvojica<Integer, Integer>, Integer> cx = new LinkedHashMap<>();
@@ -141,7 +136,7 @@ public class MinimalizaciaPrejazdov
                 expr.addTerm(1, x_ij);
             }
 
-            model.addConstr(expr, GRB.EQUAL, 1, "arrival_constraint_" + j);
+            model.addConstr(expr, GRB.EQUAL, 1, "1_arrival_constraint_" + j);
         }
 
         // Pridať druhý typ podmienok - po každom spoji i bude nasledovať jeden spoj j (alebo bude posledným spojom)
@@ -160,7 +155,7 @@ public class MinimalizaciaPrejazdov
                 expr.addTerm(1, x_ij);
             }
 
-            model.addConstr(expr, GRB.EQUAL, 1, "departure_constraint_" + i);
+            model.addConstr(expr, GRB.EQUAL, 1, "2_departure_constraint_" + i);
         }
 
         // Přidání omezení pro celkový počet spojů
@@ -169,7 +164,7 @@ public class MinimalizaciaPrejazdov
         {
             expr.addTerm(1, var);
         }
-        model.addConstr(expr, GRB.EQUAL, pSpoje.size() - pPocetBusov, "total_connections");
+        model.addConstr(expr, GRB.EQUAL, pSpoje.size() - pPocetBusov, "3_total_connections");
 
         model.update();
 
@@ -179,8 +174,12 @@ public class MinimalizaciaPrejazdov
         this.prazdnePrejazdy = (int)model.get(GRB.DoubleAttr.ObjVal);
     }
 
-    public void vytvorTurnusy(LinkedHashMap<Integer, Spoj> pSpoje)
-    {
+    public ArrayList<Turnus> vytvorTurnusy(LinkedHashMap<Integer, Spoj> pSpoje,
+                                           LinkedHashMap<Dvojica<Integer, Integer>, Usek> useky,
+                                           LinkedHashMap<Dvojica<Integer, Integer>, Integer> DT,
+                                           LinkedHashMap<Dvojica<Integer, Integer>, Integer> T) throws GRBException {
+        ArrayList<Turnus> turnusy = new ArrayList<>();
+
         // Z rozhodovacích premenných x_ij získaj všetky prepojenia spojov, a prepoj spoje
         for (Dvojica<Integer, Integer> x_ij : x.keySet()) {
             try {
@@ -200,13 +199,47 @@ public class MinimalizaciaPrejazdov
             }
         }
 
-        //Vytvorenie turnusov
+        for (Map.Entry<Integer, GRBVar> entry : this.u.entrySet())
+        {
+            int spoj_j_id = entry.getKey();
+            GRBVar u_j = entry.getValue();
+
+            try
+            {
+                if(u_j.get(GRB.DoubleAttr.X) == 1)
+                {
+                    Spoj spoj_j = pSpoje.get(spoj_j_id);
+                    turnusy.add(new Turnus(new Zmena(spoj_j)));
+                }
+            }
+            catch (GRBException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }
+
+        boolean bezChyby = false;
         for (Spoj spoj_i : pSpoje.values())
         {
-            if (spoj_i.getPredchadzajuci() == null)
+            spoj_i.setNasledujuci(null);
+            spoj_i.setPredchadzajuci(null);
+        }
+
+        model.update();
+        model.write("mm.lp");
+        return turnusy;
+    }
+
+    private void pridajPodmienky(GRBModel model, ArrayList<ArrayList<Integer>> porusenia) throws GRBException {
+        for (ArrayList<Integer> spoje : porusenia)
+        {
+            GRBLinExpr expr = new GRBLinExpr();
+            for (int i = 0; i < spoje.size() - 1; i++)
             {
-                this.turnusy.add(new Turnus(spoj_i));
+                GRBVar x_ij = x.get(new Dvojica<>(spoje.get(i), spoje.get(i+1)));
+                expr.addTerm(1, x_ij);
             }
+            model.addConstr(expr, GRB.LESS_EQUAL, spoje.size() - 2, "4_" + expr.getVar(0).get(GRB.StringAttr.VarName) + "_" + expr.getVar(expr.size()-1).get(GRB.StringAttr.VarName));
         }
     }
 
@@ -214,8 +247,4 @@ public class MinimalizaciaPrejazdov
         return prazdnePrejazdy;
     }
 
-    public ArrayList<Turnus> getTurnusy()
-    {
-        return this.turnusy;
-    }
 }

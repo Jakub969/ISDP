@@ -18,9 +18,7 @@ public class MaximalizaciaObsluzenychSpojov {
     private Map<Integer, GRBVar> v;
     private Map<Integer, GRBVar> o;
 
-    private double y_max;
-    private ArrayList<Turnus> turnusy;
-
+    private final double y_max;
     public MaximalizaciaObsluzenychSpojov(double y, int pPocetBusov, int pPocetVodicov,
                                           LinkedHashMap<Integer, Linka> pLinky,
                                           LinkedHashMap<Integer, Spoj> pSpoje,
@@ -31,7 +29,6 @@ public class MaximalizaciaObsluzenychSpojov {
         this.y_max = y;
         this.pripravModel(pSpoje);
         this.vypocitajModel(pPocetBusov, pPocetVodicov, pLinky, pSpoje, pUseky, DT, T);
-        this.vytvorTurnusy(pSpoje);
     }
 
     private void pripravModel(LinkedHashMap<Integer, Spoj> pSpoje)
@@ -50,7 +47,6 @@ public class MaximalizaciaObsluzenychSpojov {
         this.t = new LinkedHashMap<>();
         this.z = new LinkedHashMap<>();
         this.o = new LinkedHashMap<>();
-        this.turnusy = new ArrayList<>();
     }
 
     private void vypocitajModel(int pPocetBusov, int pPocetVodicov,
@@ -66,7 +62,7 @@ public class MaximalizaciaObsluzenychSpojov {
         env.start();
         GRBModel model = new GRBModel(env);
 
-        //model.set(GRB.DoubleParam.MIPGap, 0.427);
+        model.set(GRB.DoubleParam.MIPGap, 0.427);
 
         // Vytvoriť všetky premenné x_ij
         Map<Dvojica<Integer, Integer>, Integer> cx = new LinkedHashMap<>();
@@ -141,14 +137,11 @@ public class MaximalizaciaObsluzenychSpojov {
         // Nastaviť účelovú funkciu -
         GRBLinExpr objExpr = new GRBLinExpr();
 
-
         objExpr.addConstant(Model.K * pSpoje.size());
-
         for (GRBVar var : this.o.values())
         {
             objExpr.addTerm(-Model.K, var);
         }
-
 
 /*
         for (Spoj spoj_i: pSpoje.values())
@@ -156,7 +149,7 @@ public class MaximalizaciaObsluzenychSpojov {
             int i = spoj_i.getID();
             int obsSpoja = obs.get(i);
             GRBVar o_i = this.o.get(i);
-            objExpr.addTerm(10*obsSpoja, o_i);
+            objExpr.addTerm(100 * obsSpoja, o_i);
         }
 */
 
@@ -465,7 +458,9 @@ public class MaximalizaciaObsluzenychSpojov {
         }
     }
 
-    public void vytvorTurnusy(LinkedHashMap<Integer, Spoj> pSpoje) {
+    public ArrayList<Turnus> vytvorTurnusy(LinkedHashMap<Integer, Spoj> pSpoje) {
+        ArrayList<Turnus> turnusy = new ArrayList<>();
+
         // Z rozhodovacích premenných x_ij získaj všetky prepojenia spojov, a prepoj spoje
         for (Dvojica<Integer, Integer> x_ij : x.keySet()) {
             try {
@@ -485,45 +480,48 @@ public class MaximalizaciaObsluzenychSpojov {
             }
         }
 
+        for (Map.Entry<Integer, GRBVar> entry : this.u.entrySet())
+        {
+            int spoj_j_id = entry.getKey();
+            GRBVar u_j = entry.getValue();
+
+            try
+            {
+                if(u_j.get(GRB.DoubleAttr.X) == 1)
+                {
+                    Spoj spoj_j = pSpoje.get(spoj_j_id);
+                    turnusy.add(new Turnus(new Zmena(spoj_j)));
+                }
+            }
+            catch (GRBException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }
+
         for (Dvojica<Integer, Integer> y_ij : y.keySet())
         {
             try {
                 if (y.get(y_ij).get(GRB.DoubleAttr.X) == 1.0) {      //získaj hodnotu riešenia y (0 či 1)
                     int spoj_i_id = y_ij.prva();
-                    Spoj spoj_i = pSpoje.get(spoj_i_id);
 
-                    int spoj_j_id = y_ij.druha();
-                    Spoj spoj_j = pSpoje.get(spoj_j_id);
-
-                    // If the pair (i, j) is selected, set j as the successor of i and i as the previous of j
-                    spoj_i.setNasledujuci(spoj_j);  // Set j as the successor of i
-                    spoj_j.setPredchadzajuci(spoj_i);  // Set i as the previous of j
-                    spoj_i.setKoniecZmeny(true);
+                    for (Turnus turnus: turnusy)
+                    {
+                        int poslednySpoj_id = turnus.getPrvaZmena().getPoslednySpoj().getID();
+                        if(poslednySpoj_id == spoj_i_id)
+                        {
+                            int spoj_j_id = y_ij.druha();
+                            Spoj spoj_j = pSpoje.get(spoj_j_id);
+                            turnus.pridajDruhuZmenu(new Zmena(spoj_j));
+                            break;
+                        }
+                    }
                 }
             } catch (GRBException e) {
                 e.printStackTrace();
             }
         }
 
-        //Vytvorenie turnusov
-        for (Map.Entry<Integer, GRBVar> entry : this.u.entrySet())
-        {
-            int spoj_j_id = entry.getKey();
-            GRBVar u_j = entry.getValue();
-            try {
-                if(u_j.get(GRB.DoubleAttr.X) == 1)
-                {
-                    Spoj spoj_j = pSpoje.get(spoj_j_id);
-                    this.turnusy.add(new Turnus(spoj_j));
-                }
-            } catch (GRBException e) {
-                throw new RuntimeException(e);
-            }
-        }
+        return turnusy;
     }
-    public ArrayList<Turnus> getTurnusy()
-    {
-        return this.turnusy;
-    }
-
 }

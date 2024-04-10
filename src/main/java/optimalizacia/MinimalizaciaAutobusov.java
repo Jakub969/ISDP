@@ -4,18 +4,17 @@ import com.gurobi.gurobi.*;
 import data.Dvojica;
 import data.Spoj;
 import data.Turnus;
+import data.Zmena;
 
 import java.util.*;
 
 public class MinimalizaciaAutobusov {
     private Map<Dvojica<Integer, Integer>, GRBVar> x;
-    private ArrayList<Turnus> turnusy;
     private int pocetAutobusov;
     public MinimalizaciaAutobusov(LinkedHashMap<Integer, Spoj> pSpoje) throws GRBException
     {
         this.pripravModel(pSpoje);
         this.vypocitajModel(pSpoje);
-        this.vytvorTurnusy(pSpoje);
     }
 
     private void pripravModel(LinkedHashMap<Integer, Spoj> pSpoje)
@@ -28,7 +27,6 @@ public class MinimalizaciaAutobusov {
         }
 
         this.x = new LinkedHashMap<>();
-        this.turnusy = new ArrayList<>();
     }
 
     private void vypocitajModel(Map<Integer, Spoj> pSpoje) throws GRBException {
@@ -98,8 +96,9 @@ public class MinimalizaciaAutobusov {
         this.pocetAutobusov = pSpoje.size() - (int)model.get(GRB.DoubleAttr.ObjVal);
     }
 
-    public void vytvorTurnusy(LinkedHashMap<Integer, Spoj> pSpoje)
-    {
+    public ArrayList<Turnus> vytvorTurnusy(LinkedHashMap<Integer, Spoj> pSpoje) {
+        ArrayList<Turnus> turnusy = new ArrayList<>();
+
         // Z rozhodovacích premenných x_ij získaj všetky prepojenia spojov, a prepoj spoje
         for (Dvojica<Integer, Integer> x_ij : x.keySet()) {
             try {
@@ -124,17 +123,14 @@ public class MinimalizaciaAutobusov {
         {
             if (spoj_i.getPredchadzajuci() == null)
             {
-                this.turnusy.add(new Turnus(spoj_i));
+                turnusy.add(new Turnus(new Zmena(spoj_i)));
             }
         }
-    }
 
+        return turnusy;
+    }
     public int getPocetAutobusov()
     {
         return this.pocetAutobusov;
-    }
-    public ArrayList<Turnus> getTurnusy()
-    {
-        return this.turnusy;
     }
 }

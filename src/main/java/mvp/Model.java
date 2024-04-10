@@ -12,7 +12,7 @@ public class Model {
     public static final int REZERVA_1 = 0;
     public static final int REZERVA_2 = 0;
     public static final int DEPO = 59;
-    public static final int C_VODIC = 100;
+    public static final int C_VODIC = 50;
     public static final int C_KM = 2;
     public static final int K = 10000;
 
@@ -123,11 +123,17 @@ public class Model {
         {
             MinimalizaciaAutobusov minBusov = new MinimalizaciaAutobusov(this.spoje);
             int pocetBusov = minBusov.getPocetAutobusov();
-            ArrayList<Turnus> turnusy = minBusov.getTurnusy();
+            ArrayList<Turnus> turnusy = minBusov.vytvorTurnusy(this.spoje);
             for (Turnus turnus: turnusy)
             {
-                pTurnusyUdaje.add(turnus.vypis(this.useky));
-                pSpojeUdaje.add(turnus.vypisSpoje(this.useky));
+                pTurnusyUdaje.add(turnus.getPrvaZmena().vypis(this.useky));
+                pSpojeUdaje.add(turnus.getPrvaZmena().vypisSpoje(this.useky));
+
+                if(turnus.getDruhaZmena() != null)
+                {
+                    pTurnusyUdaje.add(turnus.getDruhaZmena().vypis(this.useky));
+                    pSpojeUdaje.add(turnus.getDruhaZmena().vypisSpoje(this.useky));
+                }
             }
             return String.valueOf(pocetBusov);
         }
@@ -145,11 +151,17 @@ public class Model {
         {
             MinimalizaciaPrejazdov minBusov = new MinimalizaciaPrejazdov(pPocetBusov, this.spoje, this.useky);
             int prazdnePrejazdy = minBusov.getPrazdnePrejazdy();
-            ArrayList<Turnus> turnusy = minBusov.getTurnusy();
+            ArrayList<Turnus> turnusy = minBusov.vytvorTurnusy(this.spoje, this.useky, this.DT, this.T);
             for (Turnus turnus: turnusy)
             {
-                pTurnusyUdaje.add(turnus.vypis(this.useky));
-                pSpojeUdaje.add(turnus.vypisSpoje(this.useky));
+                pTurnusyUdaje.add(turnus.getPrvaZmena().vypis(this.useky));
+                pSpojeUdaje.add(turnus.getPrvaZmena().vypisSpoje(this.useky));
+
+                if(turnus.getDruhaZmena() != null)
+                {
+                    pTurnusyUdaje.add(turnus.getDruhaZmena().vypis(this.useky));
+                    pSpojeUdaje.add(turnus.getDruhaZmena().vypisSpoje(this.useky));
+                }
             }
             return String.valueOf(prazdnePrejazdy);
         }
@@ -166,11 +178,17 @@ public class Model {
         {
             MinimalizaciaVodicov minVodicov = new MinimalizaciaVodicov(pPocetBusov, this.spoje, this.useky, this.DT, this.T);
             int pocetVodicov = minVodicov.getPocetVodicov();
-            ArrayList<Turnus> turnusy = minVodicov.getTurnusy();
+            ArrayList<Turnus> turnusy = minVodicov.vytvorTurnusy(this.spoje);
             for (Turnus turnus: turnusy)
             {
-                pTurnusyUdaje.add(turnus.vypis(this.useky));
-                pSpojeUdaje.add(turnus.vypisSpoje(this.useky));
+                pTurnusyUdaje.add(turnus.getPrvaZmena().vypis(this.useky));
+                pSpojeUdaje.add(turnus.getPrvaZmena().vypisSpoje(this.useky));
+
+                if(turnus.getDruhaZmena() != null)
+                {
+                    pTurnusyUdaje.add(turnus.getDruhaZmena().vypis(this.useky));
+                    pSpojeUdaje.add(turnus.getDruhaZmena().vypisSpoje(this.useky));
+                }
             }
             return String.valueOf(pocetVodicov);
         }
@@ -187,12 +205,18 @@ public class Model {
         try
         {
             MaximalizaciaObsadenosti maxObs = new MaximalizaciaObsadenosti(pPocetBusov, pPocetVodicov,this.linky, this.spoje, this.useky, this.DT, this.T);
-            ArrayList<Turnus> turnusy = maxObs.getTurnusy();
+            ArrayList<Turnus> turnusy = maxObs.vytvorTurnusy(this.spoje);
 
             for (Turnus turnus: turnusy)
             {
-                pTurnusyUdaje.add(turnus.vypis(this.useky));
-                pSpojeUdaje.add(turnus.vypisSpoje(this.useky));
+                pTurnusyUdaje.add(turnus.getPrvaZmena().vypis(this.useky));
+                pSpojeUdaje.add(turnus.getPrvaZmena().vypisSpoje(this.useky));
+
+                if(turnus.getDruhaZmena() != null)
+                {
+                    pTurnusyUdaje.add(turnus.getDruhaZmena().vypis(this.useky));
+                    pSpojeUdaje.add(turnus.getDruhaZmena().vypisSpoje(this.useky));
+                }
             }
             return "";
         }
@@ -209,11 +233,17 @@ public class Model {
         {
             MaximalizaciaObsluzenychSpojov maxObs = new MaximalizaciaObsluzenychSpojov(y, pPocetBusov, pPocetVodicov,
                     this.linky, this.spoje, this.useky, this.DT, this.T);
-            ArrayList<Turnus> turnusy = maxObs.getTurnusy();
+            ArrayList<Turnus> turnusy = maxObs.vytvorTurnusy(this.spoje);
             for (Turnus turnus: turnusy)
             {
-                pTurnusyUdaje.add(turnus.vypis(this.useky));
-                pSpojeUdaje.add(turnus.vypisSpoje(this.useky));
+                pTurnusyUdaje.add(turnus.getPrvaZmena().vypis(this.useky));
+                pSpojeUdaje.add(turnus.getPrvaZmena().vypisSpoje(this.useky));
+
+                if(turnus.getDruhaZmena() != null)
+                {
+                    pTurnusyUdaje.add(turnus.getDruhaZmena().vypis(this.useky));
+                    pSpojeUdaje.add(turnus.getDruhaZmena().vypisSpoje(this.useky));
+                }
             }
             return "";
         }

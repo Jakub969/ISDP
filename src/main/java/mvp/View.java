@@ -12,7 +12,7 @@ public class View {
         //vypisVsetkySpoje();
         //this.vypisVsetkyLinky();
         //vykonajMinimalizaciuAutobusov();
-        //vykonajMinimalizaciuPrazdnychPrejazdov();
+        vykonajMinimalizaciuPrazdnychPrejazdov();
         //vykonajMinimalizaciuVodicov();
         //vykonajMaximalizaciuObsadenosti();
         //vykonajMaximalizaciuObsluzenychSpojov();
@@ -92,7 +92,7 @@ public class View {
     {
         ArrayList<String[]> turnusyUdaje = new ArrayList<>();
         ArrayList<String[][]> spojeUdaje = new ArrayList<>();
-        String prazdnePrejazdy = this.presenter.vykonajMinimalizaciuPrazdnychPrejazdov(4, turnusyUdaje, spojeUdaje);
+        String prazdnePrejazdy = this.presenter.vykonajMinimalizaciuPrazdnychPrejazdov(39, turnusyUdaje, spojeUdaje);
 
         System.out.println("Súčet prázdnych prejazdov: " + prazdnePrejazdy);
 
@@ -207,7 +207,7 @@ public class View {
     {
         ArrayList<String[]> turnusyUdaje = new ArrayList<>();
         ArrayList<String[][]> spojeUdaje = new ArrayList<>();
-        this.presenter.vykonajMaximalizaciuObsluzenychSpojov(0.660494, 2, 3, turnusyUdaje, spojeUdaje);
+        this.presenter.vykonajMaximalizaciuObsluzenychSpojov(0.6358024691358025, 2, 3, turnusyUdaje, spojeUdaje);
 
         int counter = 1;
         System.out.println("Tur \t Zač \t Kon");

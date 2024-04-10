@@ -1,10 +1,7 @@
 package optimalizacia;
 
 import com.gurobi.gurobi.*;
-import data.Dvojica;
-import data.Spoj;
-import data.Turnus;
-import data.Usek;
+import data.*;
 import mvp.Model;
 
 import java.util.ArrayList;
@@ -20,7 +17,6 @@ public class MinimalizaciaVodicov
     private Map<Integer, GRBVar> z;
     private Map<Integer, GRBVar> u;
     private Map<Integer, GRBVar> v;
-    private ArrayList<Turnus> turnusy;
     private int pocetVodicov;
 
     public MinimalizaciaVodicov(int pPocetBusov,
@@ -30,7 +26,6 @@ public class MinimalizaciaVodicov
     {
         this.pripravModel(pSpoje);
         this.vypocitajModel(pPocetBusov, pSpoje, pUseky, DT, T);
-        this.vytvorTurnusy(pSpoje);
     }
 
     private void pripravModel(LinkedHashMap<Integer, Spoj> pSpoje)
@@ -48,7 +43,6 @@ public class MinimalizaciaVodicov
         this.v = new LinkedHashMap<>();
         this.t = new LinkedHashMap<>();
         this.z = new LinkedHashMap<>();
-        this.turnusy = new ArrayList<>();
     }
     private void vypocitajModel(int pPocetBusov,
                                 Map<Integer, Spoj> pSpoje, LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky,
@@ -62,9 +56,8 @@ public class MinimalizaciaVodicov
         GRBModel model = new GRBModel(env);
         //model.set(GRB.IntParam.ConcurrentMethod, 1);
         //model.set(GRB.IntParam.MIPFocus, 1);
-
         //model.getEnv().set(GRB.DoubleParam.TimeLimit, 100.0);
-         model.set(GRB.DoubleParam.MIPGap, 0.20);
+         model.set(GRB.DoubleParam.MIPGap, 0.15);
 
         // Vytvoriť všetky premenné x_ij
         Map<Dvojica<Integer, Integer>, Integer> cx = new LinkedHashMap<>();
@@ -413,7 +406,9 @@ public class MinimalizaciaVodicov
         }
 
     }
-    public void vytvorTurnusy(LinkedHashMap<Integer, Spoj> pSpoje) {
+    public ArrayList<Turnus> vytvorTurnusy(LinkedHashMap<Integer, Spoj> pSpoje) {
+        ArrayList<Turnus> turnusy = new ArrayList<>();
+
         // Z rozhodovacích premenných x_ij získaj všetky prepojenia spojov, a prepoj spoje
         for (Dvojica<Integer, Integer> x_ij : x.keySet()) {
             try {
@@ -433,47 +428,52 @@ public class MinimalizaciaVodicov
             }
         }
 
+        for (Map.Entry<Integer, GRBVar> entry : this.u.entrySet())
+        {
+            int spoj_j_id = entry.getKey();
+            GRBVar u_j = entry.getValue();
+
+            try
+            {
+                if(u_j.get(GRB.DoubleAttr.X) == 1)
+                {
+                    Spoj spoj_j = pSpoje.get(spoj_j_id);
+                    turnusy.add(new Turnus(new Zmena(spoj_j)));
+                }
+            }
+            catch (GRBException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }
+
         for (Dvojica<Integer, Integer> y_ij : y.keySet())
         {
             try {
                 if (y.get(y_ij).get(GRB.DoubleAttr.X) == 1.0) {      //získaj hodnotu riešenia y (0 či 1)
                     int spoj_i_id = y_ij.prva();
-                    Spoj spoj_i = pSpoje.get(spoj_i_id);
 
-                    int spoj_j_id = y_ij.druha();
-                    Spoj spoj_j = pSpoje.get(spoj_j_id);
-
-                    // If the pair (i, j) is selected, set j as the successor of i and i as the previous of j
-                    spoj_i.setNasledujuci(spoj_j);  // Set j as the successor of i
-                    spoj_j.setPredchadzajuci(spoj_i);  // Set i as the previous of j
-                    spoj_i.setKoniecZmeny(true);
+                    for (Turnus turnus: turnusy)
+                    {
+                        int poslednySpoj_id = turnus.getPrvaZmena().getPoslednySpoj().getID();
+                        if(poslednySpoj_id == spoj_i_id)
+                        {
+                            int spoj_j_id = y_ij.druha();
+                            Spoj spoj_j = pSpoje.get(spoj_j_id);
+                            turnus.pridajDruhuZmenu(new Zmena(spoj_j));
+                            break;
+                        }
+                    }
                 }
             } catch (GRBException e) {
                 e.printStackTrace();
             }
         }
 
-        //Vytvorenie turnusov
-        for (Map.Entry<Integer, GRBVar> entry : this.u.entrySet())
-        {
-            int spoj_j_id = entry.getKey();
-            GRBVar u_j = entry.getValue();
-            try {
-                if(u_j.get(GRB.DoubleAttr.X) == 1)
-                {
-                    Spoj spoj_j = pSpoje.get(spoj_j_id);
-                    this.turnusy.add(new Turnus(spoj_j));
-                }
-            } catch (GRBException e) {
-                throw new RuntimeException(e);
-            }
-        }
+        return turnusy;
     }
+
     public int getPocetVodicov() {
         return pocetVodicov;
-    }
-    public ArrayList<Turnus> getTurnusy()
-    {
-        return this.turnusy;
     }
 }
