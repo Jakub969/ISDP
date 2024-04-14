@@ -123,12 +123,17 @@ public class Zmena
     private ArrayList<Integer> spocitajBPPrestavku(int tur, ArrayList<Dvojica<Integer, Integer>> jazdy,
                                   int zacIntervalu, int konIntervalu)
     {
+/*        int zac = jazdy.get(0).prva();
+        int kon = jazdy.get(jazdy.size() - 1).druha();
+        if(zacIntervalu < zac || konIntervalu > kon)
+            return null;*/
+
         int zac = jazdy.get(0).prva();
         int kon = jazdy.get(jazdy.size() - 1).druha();
         int skutocneTrvanieIntervalu = Math.min(kon, konIntervalu) - Math.max(zac, zacIntervalu);
-        if(skutocneTrvanieIntervalu < 240)
-            return null;
 
+        if(zacIntervalu == 302)
+            System.out.println();
         int bp = 0;
         for (int i = 0; i < jazdy.size(); i++)
         {
@@ -147,7 +152,7 @@ public class Zmena
                 }
             }
         }
-        if(bp < 30)
+        if(skutocneTrvanieIntervalu - bp > 240 && bp < 30)
         {
             ArrayList<Integer> spojeID = new ArrayList<>();
             System.out.println("Porusenie BP v turnuse " + tur + " v case od " +

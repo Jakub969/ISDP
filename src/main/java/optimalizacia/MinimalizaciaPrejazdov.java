@@ -15,6 +15,7 @@ public class MinimalizaciaPrejazdov
     private Map<Integer, GRBVar> v;
     private int prazdnePrejazdy;
     private GRBModel model;
+    private ArrayList<Turnus> turnusy;
 
     public MinimalizaciaPrejazdov(int pPocetBusov,
                                   LinkedHashMap<Integer, Spoj> pSpoje,
@@ -26,13 +27,6 @@ public class MinimalizaciaPrejazdov
 
     private void pripravModel(LinkedHashMap<Integer, Spoj> pSpoje)
     {
-        // Reset previous and successor trip IDs for all trips
-        for (Spoj spoj_i : pSpoje.values())
-        {
-            spoj_i.setNasledujuci(null);
-            spoj_i.setPredchadzajuci(null);
-        }
-
         this.x = new LinkedHashMap<>();
         this.u = new LinkedHashMap<>();
         this.v = new LinkedHashMap<>();
@@ -174,11 +168,18 @@ public class MinimalizaciaPrejazdov
         this.prazdnePrejazdy = (int)model.get(GRB.DoubleAttr.ObjVal);
     }
 
-    public ArrayList<Turnus> vytvorTurnusy(LinkedHashMap<Integer, Spoj> pSpoje,
-                                           LinkedHashMap<Dvojica<Integer, Integer>, Usek> useky,
+    public boolean vytvorSkontrolujTurnusy(LinkedHashMap<Integer, Spoj> pSpoje,
+                                           LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky,
                                            LinkedHashMap<Dvojica<Integer, Integer>, Integer> DT,
                                            LinkedHashMap<Dvojica<Integer, Integer>, Integer> T) throws GRBException {
-        ArrayList<Turnus> turnusy = new ArrayList<>();
+        // Reset previous and successor trip IDs for all trips
+        for (Spoj spoj_i : pSpoje.values())
+        {
+            spoj_i.setNasledujuci(null);
+            spoj_i.setPredchadzajuci(null);
+        }
+
+        this.turnusy = new ArrayList<>();
 
         // Z rozhodovacích premenných x_ij získaj všetky prepojenia spojov, a prepoj spoje
         for (Dvojica<Integer, Integer> x_ij : x.keySet()) {
@@ -218,16 +219,35 @@ public class MinimalizaciaPrejazdov
             }
         }
 
-        boolean bezChyby = false;
-        for (Spoj spoj_i : pSpoje.values())
+        ArrayList<ArrayList<Integer>> porusenia;
+        boolean bezPorusenia = true;
+        for (int i = 0; i < turnusy.size(); i++)
         {
-            spoj_i.setNasledujuci(null);
-            spoj_i.setPredchadzajuci(null);
+            porusenia = turnusy.get(i).getPrvaZmena().porusujeBP(i+1, pUseky, DT, T);
+            if(!porusenia.isEmpty())
+            {
+                bezPorusenia = false;
+                pridajPodmienky(this.model, porusenia);
+            }
+            if(turnusy.get(i).getDruhaZmena() != null)
+            {
+                porusenia = turnusy.get(i).getDruhaZmena().porusujeBP(i+1, pUseky, DT, T);
+                if(!porusenia.isEmpty())
+                {
+                    bezPorusenia = false;
+                    pridajPodmienky(this.model, porusenia);
+                }
+            }
         }
 
-        model.update();
-        model.write("mm.lp");
-        return turnusy;
+        if(bezPorusenia)
+            return true;
+        else
+        {
+            model.update();
+            model.optimize();
+            return false;
+        }
     }
 
     private void pridajPodmienky(GRBModel model, ArrayList<ArrayList<Integer>> porusenia) throws GRBException {
@@ -247,4 +267,7 @@ public class MinimalizaciaPrejazdov
         return prazdnePrejazdy;
     }
 
+    public ArrayList<Turnus> getTurnusy() {
+        return turnusy;
+    }
 }

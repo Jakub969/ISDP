@@ -12,10 +12,10 @@ public class View {
         //vypisVsetkySpoje();
         //this.vypisVsetkyLinky();
         //vykonajMinimalizaciuAutobusov();
-        vykonajMinimalizaciuPrazdnychPrejazdov();
+        //vykonajMinimalizaciuPrazdnychPrejazdov();
         //vykonajMinimalizaciuVodicov();
-        //vykonajMaximalizaciuObsadenosti();
-        //vykonajMaximalizaciuObsluzenychSpojov();
+       //vykonajMaximalizaciuObsadenosti();
+        vykonajMaximalizaciuObsluzenychSpojov();
     }
 
     public void vypisVsetkySpoje()
@@ -131,7 +131,7 @@ public class View {
     {
         ArrayList<String[]> turnusyUdaje = new ArrayList<>();
         ArrayList<String[][]> spojeUdaje = new ArrayList<>();
-        String prazdnePrejazdy = this.presenter.vykonajMinimalizaciuVodicov(4, turnusyUdaje, spojeUdaje);
+        String prazdnePrejazdy = this.presenter.vykonajMinimalizaciuVodicov(10, turnusyUdaje, spojeUdaje);
 
         System.out.println("Počet vodičov: " + prazdnePrejazdy);
 
@@ -170,7 +170,7 @@ public class View {
     {
         ArrayList<String[]> turnusyUdaje = new ArrayList<>();
         ArrayList<String[][]> spojeUdaje = new ArrayList<>();
-        this.presenter.vykonajMaximalizaciuObsadenosti(2, 3, turnusyUdaje, spojeUdaje);
+        this.presenter.vykonajMaximalizaciuObsadenosti(6, 6, turnusyUdaje, spojeUdaje);
 
         int counter = 1;
         System.out.println("Tur \t Zač \t Kon");
@@ -207,7 +207,7 @@ public class View {
     {
         ArrayList<String[]> turnusyUdaje = new ArrayList<>();
         ArrayList<String[][]> spojeUdaje = new ArrayList<>();
-        this.presenter.vykonajMaximalizaciuObsluzenychSpojov(0.6358024691358025, 2, 3, turnusyUdaje, spojeUdaje);
+        this.presenter.vykonajMaximalizaciuObsluzenychSpojov(0.8, 6, 6, turnusyUdaje, spojeUdaje);
 
         int counter = 1;
         System.out.println("Tur \t Zač \t Kon");

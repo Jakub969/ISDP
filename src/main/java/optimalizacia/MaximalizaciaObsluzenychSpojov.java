@@ -61,8 +61,10 @@ public class MaximalizaciaObsluzenychSpojov {
         env.set("logFile", "maxObsSpojov.log");
         env.start();
         GRBModel model = new GRBModel(env);
-
-        model.set(GRB.DoubleParam.MIPGap, 0.427);
+        //model.set(GRB.IntParam.Cuts, 0);
+        //model.set(GRB.IntParam.MIPFocus, 2);
+        //model.set(GRB.IntParam.Method, 2);
+        //model.set(GRB.DoubleParam.MIPGap, 0.427);
 
         // Vytvoriť všetky premenné x_ij
         Map<Dvojica<Integer, Integer>, Integer> cx = new LinkedHashMap<>();
@@ -104,8 +106,8 @@ public class MaximalizaciaObsluzenychSpojov {
         for (Spoj spoj_j : pSpoje.values())
         {
             int j = spoj_j.getID();
-            this.t.put(j, model.addVar(0, GRB.INFINITY, 0, GRB.CONTINUOUS, "t_" + j));
-            this.z.put(j, model.addVar(0, GRB.INFINITY, 0, GRB.CONTINUOUS, "z_" + j));
+            this.t.put(j, model.addVar(0, Model.T_MAX, 0, GRB.INTEGER, "t_" + j));
+            this.z.put(j, model.addVar(0, Model.DT_MAX, 0, GRB.INTEGER, "z_" + j));
             this.o.put(j, model.addVar(0, 1, 0, GRB.BINARY, "o_" + j));
             obs.put(j, spoj_j.getObsadenost());
         }
@@ -137,10 +139,10 @@ public class MaximalizaciaObsluzenychSpojov {
         // Nastaviť účelovú funkciu -
         GRBLinExpr objExpr = new GRBLinExpr();
 
-        objExpr.addConstant(Model.K * pSpoje.size());
+        objExpr.addConstant(Model.C_VODIC * pSpoje.size());
         for (GRBVar var : this.o.values())
         {
-            objExpr.addTerm(-Model.K, var);
+            objExpr.addTerm(-Model.C_VODIC, var);
         }
 
 /*

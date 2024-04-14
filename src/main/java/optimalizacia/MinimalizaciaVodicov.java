@@ -18,6 +18,8 @@ public class MinimalizaciaVodicov
     private Map<Integer, GRBVar> u;
     private Map<Integer, GRBVar> v;
     private int pocetVodicov;
+    private ArrayList<Turnus> turnusy;
+    private GRBModel model;
 
     public MinimalizaciaVodicov(int pPocetBusov,
                                 LinkedHashMap<Integer, Spoj> pSpoje, LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky,
@@ -53,11 +55,19 @@ public class MinimalizaciaVodicov
         GRBEnv env = new GRBEnv();
         env.set("logFile", "minVodicov.log");
         env.start();
-        GRBModel model = new GRBModel(env);
-        //model.set(GRB.IntParam.ConcurrentMethod, 1);
-        //model.set(GRB.IntParam.MIPFocus, 1);
-        //model.getEnv().set(GRB.DoubleParam.TimeLimit, 100.0);
-         model.set(GRB.DoubleParam.MIPGap, 0.15);
+        model = new GRBModel(env);
+
+        //model.set(GRB.DoubleParam.NoRelHeurTime, 150);
+        //tmodel.set(GRB.IntParam.Presolve, 2);
+        //model.set(GRB.IntParam.NodeMethod, 2);
+        //model.set(GRB.IntParam.ConcurrentMethod, 0);
+        //model..set(GRB.DoubleParam.TimeLimit, 100.0);
+        //model.set(GRB.IntParam.MIPFocus, 3);
+        //model.set(GRB.IntParam.Cuts, 2);
+        //model.set(GRB.IntParam.Method, 5);
+        //model.set(GRB.DoubleParam.MIPGap, 0.0277);
+        //model.set(GRB.DoubleParam.ImproveStartTime, 3 * 60);
+       // model.set(GRB.DoubleParam.Heuristics, 0.9);
 
         // Vytvoriť všetky premenné x_ij
         Map<Dvojica<Integer, Integer>, Integer> cx = new LinkedHashMap<>();
@@ -98,8 +108,8 @@ public class MinimalizaciaVodicov
         for (Spoj spoj_j : pSpoje.values())
         {
             int j = spoj_j.getID();
-            this.t.put(j, model.addVar(0, GRB.INFINITY, 0, GRB.CONTINUOUS, "t_" + j));
-            this.z.put(j, model.addVar(0, GRB.INFINITY, 0, GRB.CONTINUOUS, "z_" + j));
+            this.t.put(j, model.addVar(0, Model.K, 0, GRB.INTEGER, "t_" + j));
+            this.z.put(j, model.addVar(0, Model.K, 0, GRB.INTEGER, "z_" + j));
         }
 
         // Vytvoriť všetky premenné u_j
@@ -139,8 +149,8 @@ public class MinimalizaciaVodicov
 
         //  + c_km * ( ∑_(ij,(i,j)∈E) [m(mpr_i, mod_j) * x_ij]
         //           + ∑_(ij,(i,j)∈F) [(m(mpr_i,D) + m(D,mod_j)) * y_ij]
-        //           + ∑_(j∈S) [m(D,mod_j) * u_j
-        //           + ∑_(i∈S) [m(mpr_i,D) * v_i)
+        //           + ∑_(j∈S) [m(D,mod_j) * u_j]
+        //           + ∑_(i∈S) [m(mpr_i,D) * v_i])
 
         for (Map.Entry<Dvojica<Integer, Integer>, GRBVar> entry : this.x.entrySet())
         {
@@ -406,8 +416,18 @@ public class MinimalizaciaVodicov
         }
 
     }
-    public ArrayList<Turnus> vytvorTurnusy(LinkedHashMap<Integer, Spoj> pSpoje) {
-        ArrayList<Turnus> turnusy = new ArrayList<>();
+    public boolean vytvorSkontrolujTurnusy(LinkedHashMap<Integer, Spoj> pSpoje,
+                                           LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky,
+                                           LinkedHashMap<Dvojica<Integer, Integer>, Integer> DT,
+                                           LinkedHashMap<Dvojica<Integer, Integer>, Integer> T) throws GRBException {
+        // Reset previous and successor trip IDs for all trips
+        for (Spoj spoj_i : pSpoje.values())
+        {
+            spoj_i.setNasledujuci(null);
+            spoj_i.setPredchadzajuci(null);
+        }
+
+        this.turnusy = new ArrayList<>();
 
         // Z rozhodovacích premenných x_ij získaj všetky prepojenia spojov, a prepoj spoje
         for (Dvojica<Integer, Integer> x_ij : x.keySet()) {
@@ -470,10 +490,63 @@ public class MinimalizaciaVodicov
             }
         }
 
-        return turnusy;
+        ArrayList<ArrayList<Integer>> porusenia;
+        boolean bezPorusenia = true;
+        for (int i = 0; i < turnusy.size(); i++)
+        {
+            porusenia = turnusy.get(i).getPrvaZmena().porusujeBP(i+1, pUseky, DT, T);
+            if(!porusenia.isEmpty())
+            {
+                bezPorusenia = false;
+                pridajPodmienky(this.model, porusenia);
+            }
+            if(turnusy.get(i).getDruhaZmena() != null)
+            {
+                porusenia = turnusy.get(i).getDruhaZmena().porusujeBP(i+1, pUseky, DT, T);
+                if(!porusenia.isEmpty())
+                {
+                    bezPorusenia = false;
+                    pridajPodmienky(this.model, porusenia);
+                }
+            }
+        }
+
+        if(bezPorusenia)
+            return true;
+        else
+        {
+            model.update();
+            model.optimize();
+
+            int sumX = 0;
+            for (GRBVar var : this.x.values())
+            {
+                if(var.get(GRB.DoubleAttr.X) == 1)
+                    sumX++;
+            }
+            this.pocetVodicov = pSpoje.size() - sumX;
+            return false;
+        }
+    }
+
+    private void pridajPodmienky(GRBModel model, ArrayList<ArrayList<Integer>> porusenia) throws GRBException {
+        for (ArrayList<Integer> spoje : porusenia)
+        {
+            GRBLinExpr expr = new GRBLinExpr();
+            for (int i = 0; i < spoje.size() - 1; i++)
+            {
+                GRBVar x_ij = x.get(new Dvojica<>(spoje.get(i), spoje.get(i+1)));
+                expr.addTerm(1, x_ij);
+            }
+            model.addConstr(expr, GRB.LESS_EQUAL, spoje.size() - 2, "4_" + expr.getVar(0).get(GRB.StringAttr.VarName) + "_" + expr.getVar(expr.size()-1).get(GRB.StringAttr.VarName));
+        }
     }
 
     public int getPocetVodicov() {
         return pocetVodicov;
+    }
+
+    public ArrayList<Turnus> getTurnusy() {
+        return turnusy;
     }
 }

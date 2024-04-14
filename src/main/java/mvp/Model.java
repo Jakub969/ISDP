@@ -12,7 +12,7 @@ public class Model {
     public static final int REZERVA_1 = 0;
     public static final int REZERVA_2 = 0;
     public static final int DEPO = 59;
-    public static final int C_VODIC = 50;
+    public static final int C_VODIC = 100;
     public static final int C_KM = 2;
     public static final int K = 10000;
 
@@ -150,8 +150,14 @@ public class Model {
         try
         {
             MinimalizaciaPrejazdov minBusov = new MinimalizaciaPrejazdov(pPocetBusov, this.spoje, this.useky);
+            boolean bezChyby = false;
+            while(!bezChyby)
+            {
+                bezChyby = minBusov.vytvorSkontrolujTurnusy(this.spoje, this.useky, this.DT, this.T);
+            }
+
             int prazdnePrejazdy = minBusov.getPrazdnePrejazdy();
-            ArrayList<Turnus> turnusy = minBusov.vytvorTurnusy(this.spoje, this.useky, this.DT, this.T);
+            ArrayList<Turnus> turnusy = minBusov.getTurnusy();
             for (Turnus turnus: turnusy)
             {
                 pTurnusyUdaje.add(turnus.getPrvaZmena().vypis(this.useky));
@@ -177,8 +183,14 @@ public class Model {
         try
         {
             MinimalizaciaVodicov minVodicov = new MinimalizaciaVodicov(pPocetBusov, this.spoje, this.useky, this.DT, this.T);
+
+            boolean bezChyby = false;
+            //while(!bezChyby)
+            //{
+                bezChyby = minVodicov.vytvorSkontrolujTurnusy(this.spoje, this.useky, this.DT, this.T);
+            //}
             int pocetVodicov = minVodicov.getPocetVodicov();
-            ArrayList<Turnus> turnusy = minVodicov.vytvorTurnusy(this.spoje);
+            ArrayList<Turnus> turnusy = minVodicov.getTurnusy();
             for (Turnus turnus: turnusy)
             {
                 pTurnusyUdaje.add(turnus.getPrvaZmena().vypis(this.useky));

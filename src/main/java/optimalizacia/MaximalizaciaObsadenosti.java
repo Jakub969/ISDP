@@ -57,7 +57,7 @@ public class MaximalizaciaObsadenosti {
         env.start();
         GRBModel model = new GRBModel(env);
 
-        model.set(GRB.DoubleParam.MIPGap, 0.19);
+        //model.set(GRB.DoubleParam.MIPGap, 0.19);
 
         // Vytvoriť všetky premenné x_ij
         for (Spoj spoj_i : pSpoje.values())
@@ -88,8 +88,8 @@ public class MaximalizaciaObsadenosti {
         for (Spoj spoj_j : pSpoje.values())
         {
             int j = spoj_j.getID();
-            this.t.put(j, model.addVar(0, GRB.INFINITY, 0, GRB.CONTINUOUS, "t_" + j));
-            this.z.put(j, model.addVar(0, GRB.INFINITY, 0, GRB.CONTINUOUS, "z_" + j));
+            this.t.put(j, model.addVar(0, Model.DT_MAX, 0, GRB.INTEGER, "t_" + j));
+            this.z.put(j, model.addVar(0, Model.T_MAX, 0, GRB.INTEGER, "z_" + j));
             this.o.put(j, model.addVar(0, 1, 0, GRB.BINARY, "o_" + j));
             obs.put(j, spoj_j.getObsadenost());
         }
