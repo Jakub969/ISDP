@@ -90,7 +90,16 @@ public class Presenter {
                 pUdajeOturnusoch, pTurnusyUdaje, pSpojeUdaje, pUdajeOiteraciach);
     }
 
-    // 7. panel
+    //7. panel - Maximalizácia obslúžených spojov
+    public String vykonajMinimalizaciuNeobsluzenychCestujucich(int pPocetBusov, int pPocetVodicov, double pH, double pGap, int pCasLimit,
+                                                        ArrayList<String[]> pUdajeOturnusoch, ArrayList<String[]> pTurnusyUdaje,
+                                                        ArrayList<String[][]> pSpojeUdaje, ArrayList<String[]> pUdajeOiteraciach)
+    {
+        return this.model.vykonajMinimalizaciuNeobsluzenychCestujucich(pPocetBusov, pPocetVodicov, pH, pGap, pCasLimit,
+                pUdajeOturnusoch, pTurnusyUdaje, pSpojeUdaje, pUdajeOiteraciach);
+    }
+
+    // 8. panel - Experiment
     public String vykonajExperiment(ArrayList<String[]> informacieObehu,
                                     int pPocetBusov, int pPocetVodicov, int pCasLimit, double pGap)
     {

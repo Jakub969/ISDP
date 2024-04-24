@@ -395,7 +395,43 @@ public class Model {
         }
     }
 
-    // 7. panel - Experiment
+    // 7. panel - Minimalizácia obslúžených cestujúcich
+    public String vykonajMinimalizaciuNeobsluzenychCestujucich(int pPocetBusov, int pPocetVodicov, double pH, double pGap, int pCasLimit,
+                                                        ArrayList<String[]> pUdajeOturnusoch, ArrayList<String[]> pTurnusyUdaje,
+                                                        ArrayList<String[][]> pSpojeUdaje, ArrayList<String[]> pUdajeOiteraciach)
+    {
+        try
+        {
+            ModelMaxObsluzenychSpojov maxObsluzenychSpojov = new ModelMaxObsluzenychSpojov(pH, this.linky, pPocetBusov, pPocetVodicov,
+                    this.spoje, this.useky, this.DT, this.T, pUdajeOiteraciach);
+            boolean vyrieseny = maxObsluzenychSpojov.vyriesModel(this.env, pGap, pCasLimit);
+            if(!vyrieseny)
+                return "Model nemá riešenie!";
+
+            ArrayList<Turnus> turnusy = maxObsluzenychSpojov.getTurnusy();
+            for (Turnus turnus: turnusy)
+            {
+                pUdajeOturnusoch.add(turnus.vypisUdajeOturnuse());
+                pTurnusyUdaje.add(turnus.getPrvaZmena().vypisZmenu(this.DT));
+                pSpojeUdaje.add(turnus.getPrvaZmena().vypisSpoje(this.useky));
+                if(turnus.getDruhaZmena() != null)
+                {
+                    pTurnusyUdaje.add(turnus.getDruhaZmena().vypisZmenu(this.DT));
+                    pSpojeUdaje.add(turnus.getDruhaZmena().vypisSpoje(this.useky));
+                }
+            }
+
+            String info = maxObsluzenychSpojov.getInformacieOmodeli();
+            maxObsluzenychSpojov.zrusModel();
+            return info;
+        }
+        catch (Exception e)
+        {
+            return "Chyba pri riešení modelu!";
+        }
+    }
+
+    // 8. panel - Experiment
     public String vykonajExperiment(ArrayList<String[]> informacieObehu, int pPocetBusov, int pPocetVodicov, int pCasLimit, double pGap)
     {
         ArrayList<String[]> pUdajeOiteraciach = new ArrayList<>();
@@ -403,8 +439,7 @@ public class Model {
         {
             for (int i = pPocetBusov; i >= 1; i--)
             {
-                for (int j = pPocetVodicov; j >= i * 2; j--)
-                {
+                for (int j = Math.min(pPocetVodicov, i * 2); j >= i; j--) {
                     String[] info = new String[8];
                     info[0] = String.valueOf(i);
                     info[1] = String.valueOf(j);
@@ -436,7 +471,7 @@ public class Model {
 
                 }
             }
-            return "Hotovo!";
+            return "Hotovo";
         }
         catch (Exception e)
         {

@@ -15,6 +15,7 @@ public class View {
     private final ViewMinVodicov viewMinVodicov;
     private final ViewMaxObsadenosti viewMaxObsadenosti;
     private final ViewMaxObsluzenychSpojov viewMaxObsluzenychSpojov;
+    private final ViewMinNeobsluzenychCestujucich viewMinNeobsluzenychCestujucich;
     private final ViewExperiment viewExperiment;
     public View() {
         this.presenter = new Presenter();
@@ -54,6 +55,10 @@ public class View {
         this.panel.add(viewMaxObsluzenychSpojov, "Maximalizácia obslúžených spojov");
 
         // Vytvorenie 7. panelu
+        this.viewMinNeobsluzenychCestujucich = new ViewMinNeobsluzenychCestujucich(presenter);
+        this.panel.add(viewMinNeobsluzenychCestujucich, "Minimalizácia neobslúžených cestujúcich");
+
+        // Vytvorenie 8. panelu
         this.viewExperiment = new ViewExperiment(presenter);
         this.panel.add(viewExperiment, "Experiment");
 
@@ -146,8 +151,22 @@ public class View {
         });
         menu.add(menuItem6);
 
-        JMenuItem menuItem7 = new JMenuItem("Experiment");
+        JMenuItem menuItem7 = new JMenuItem("Minimalizácia neobslúžených cestujúcich");
         menuItem7.addActionListener(e -> {
+            if(this.presenter.jeProstrediePripravene())
+            {
+                cardLayout.show(panel, "Minimalizácia neobslúžených cestujúcich");
+            }
+            else
+            {
+                JOptionPane.showMessageDialog(null, "Údaje nie sú načítané!",
+                        "Chyba", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+        menu.add(menuItem7);
+
+        JMenuItem menuItem8 = new JMenuItem("Experiment");
+        menuItem8.addActionListener(e -> {
             if(this.presenter.jeProstrediePripravene())
             {
                 cardLayout.show(panel, "Experiment");
@@ -158,7 +177,7 @@ public class View {
                         "Chyba", JOptionPane.WARNING_MESSAGE);
             }
         });
-        menu.add(menuItem7);
+        menu.add(menuItem8);
 
         menuBar.add(menu);
         return menuBar;
