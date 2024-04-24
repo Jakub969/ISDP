@@ -1,22 +1,22 @@
-package data;
+package dataOld;
 
-public class Usek {
-    private final Zastavka prvaZastavka;
-    private final Zastavka druhaZastavka;
+public class UsekOld {
+    private final ZastavkaOld prvaZastavka;
+    private final ZastavkaOld druhaZastavka;
     private final int casPrejazdu;
-    public Usek(Zastavka pPrvaZastavka, Zastavka pDruhaZastavka, int pCasPrejazdu)
+    public UsekOld(ZastavkaOld pPrvaZastavka, ZastavkaOld pDruhaZastavka, int pCasPrejazdu)
     {
         this.prvaZastavka = pPrvaZastavka;
         this.druhaZastavka = pDruhaZastavka;
         this.casPrejazdu = pCasPrejazdu;
     }
 
-    public Zastavka getPrvaZastavka()
+    public ZastavkaOld getPrvaZastavka()
     {
         return this.prvaZastavka;
     }
 
-    public Zastavka getDruhaZastavka()
+    public ZastavkaOld getDruhaZastavka()
     {
         return this.druhaZastavka;
     }

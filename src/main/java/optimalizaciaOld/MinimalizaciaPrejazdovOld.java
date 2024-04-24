@@ -1,31 +1,31 @@
-package optimalizacia;
+package optimalizaciaOld;
 
 import com.gurobi.gurobi.*;
-import data.*;
-import mvp.Model;
+import dataOld.*;
+import mvpOld.ModelOld;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class MinimalizaciaPrejazdov
+public class MinimalizaciaPrejazdovOld
 {
-    private Map<Dvojica<Integer, Integer>, GRBVar> x;
+    private Map<DvojicaOld<Integer, Integer>, GRBVar> x;
     private Map<Integer, GRBVar> u;
     private Map<Integer, GRBVar> v;
     private int prazdnePrejazdy;
     private GRBModel model;
-    private ArrayList<Turnus> turnusy;
+    private ArrayList<TurnusOld> turnusy;
 
-    public MinimalizaciaPrejazdov(int pPocetBusov,
-                                  LinkedHashMap<Integer, Spoj> pSpoje,
-                                  LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky) throws GRBException
+    public MinimalizaciaPrejazdovOld(int pPocetBusov,
+                                     LinkedHashMap<Integer, SpojOld> pSpoje,
+                                     LinkedHashMap<DvojicaOld<Integer, Integer>, UsekOld> pUseky) throws GRBException
     {
         this.pripravModel(pSpoje);
         this.vypocitajModel(pPocetBusov, pSpoje, pUseky);
     }
 
-    private void pripravModel(LinkedHashMap<Integer, Spoj> pSpoje)
+    private void pripravModel(LinkedHashMap<Integer, SpojOld> pSpoje)
     {
         this.x = new LinkedHashMap<>();
         this.u = new LinkedHashMap<>();
@@ -33,8 +33,8 @@ public class MinimalizaciaPrejazdov
     }
 
     private void vypocitajModel(int pPocetBusov,
-                                Map<Integer, Spoj> pSpoje,
-                                LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky) throws GRBException
+                                Map<Integer, SpojOld> pSpoje,
+                                LinkedHashMap<DvojicaOld<Integer, Integer>, UsekOld> pUseky) throws GRBException
     {
         // Create a new optimization model
         GRBEnv env = new GRBEnv();
@@ -43,17 +43,17 @@ public class MinimalizaciaPrejazdov
         model = new GRBModel(env);
 
         // Vytvoriť všetky premenné x_ij
-        Map<Dvojica<Integer, Integer>, Integer> cx = new LinkedHashMap<>();
-        for (Spoj spoj_i : pSpoje.values())
+        Map<DvojicaOld<Integer, Integer>, Integer> cx = new LinkedHashMap<>();
+        for (SpojOld spoj_i : pSpoje.values())
         {
             int i = spoj_i.getID();
-            for (Spoj spoj_j : spoj_i.getMozneNasledujuceSpoje())
+            for (SpojOld spoj_j : spoj_i.getMozneNasledujuceSpoje())
             {
                 int j = spoj_j.getID();
-                Dvojica<Integer, Integer> prechod = new Dvojica<>(i, j);
+                DvojicaOld<Integer, Integer> prechod = new DvojicaOld<>(i, j);
                 int mpr_i = spoj_i.getMiestoPrichoduID();
                 int mod_j = spoj_j.getMiestoOdchoduID();
-                int dist = pUseky.get(new Dvojica<>(mpr_i, mod_j)).getCasPrejazdu();
+                int dist = pUseky.get(new DvojicaOld<>(mpr_i, mod_j)).getCasPrejazdu();
                 x.put(prechod, model.addVar(0, 1, 0, GRB.BINARY, "x_" + i + "_" + j));
                 cx.put(prechod, dist);
             }
@@ -61,22 +61,22 @@ public class MinimalizaciaPrejazdov
 
         // Vytvoriť všetky premenné u_j
         Map<Integer, Integer> cu = new LinkedHashMap<>();
-        for (Spoj spoj_j : pSpoje.values())
+        for (SpojOld spoj_j : pSpoje.values())
         {
             int j = spoj_j.getID();
             int mod_j = spoj_j.getMiestoOdchoduID();
-            int dist = pUseky.get(new Dvojica<>(Model.DEPO, mod_j)).getCasPrejazdu();
+            int dist = pUseky.get(new DvojicaOld<>(ModelOld.DEPO, mod_j)).getCasPrejazdu();
             u.put(j, model.addVar(0, 1, 0, GRB.BINARY, "u_" + j));
             cu.put(j, dist);
         }
 
         // Vytvoriť všetky premenné v_i
         Map<Integer, Integer> cv = new LinkedHashMap<>();
-        for (Spoj spoj_i : pSpoje.values())
+        for (SpojOld spoj_i : pSpoje.values())
         {
             int i = spoj_i.getID();
             int mpr_i = spoj_i.getMiestoPrichoduID();
-            int dist = pUseky.get(new Dvojica<>(mpr_i, Model.DEPO)).getCasPrejazdu();
+            int dist = pUseky.get(new DvojicaOld<>(mpr_i, ModelOld.DEPO)).getCasPrejazdu();
             v.put(i, model.addVar(0, 1, 0, GRB.BINARY, "v_" + i));
             cv.put(i, dist);
         }
@@ -87,9 +87,9 @@ public class MinimalizaciaPrejazdov
         // 1. súčet cx_ij * x_ij
         GRBLinExpr objExpr = new GRBLinExpr();
 
-        for (Map.Entry<Dvojica<Integer, Integer>, GRBVar> entry : this.x.entrySet())
+        for (Map.Entry<DvojicaOld<Integer, Integer>, GRBVar> entry : this.x.entrySet())
         {
-            Dvojica<Integer, Integer> key = entry.getKey();
+            DvojicaOld<Integer, Integer> key = entry.getKey();
             GRBVar x_ij = entry.getValue();
             int cx_ij = cx.get(key);
             objExpr.addTerm(cx_ij, x_ij);
@@ -115,7 +115,7 @@ public class MinimalizaciaPrejazdov
         model.update();
 
         // Pridať prvý typ podmienok - každý spoj j bude nasledovať po jednom spoji i (alebo bude prvým spojom)
-        for (Spoj spoj_j : pSpoje.values())       // pre j = 1..n
+        for (SpojOld spoj_j : pSpoje.values())       // pre j = 1..n
         {
             int j = spoj_j.getID();
 
@@ -123,10 +123,10 @@ public class MinimalizaciaPrejazdov
             GRBVar u_j = this.u.get(j);
             expr.addTerm(1, u_j);
 
-            for(Spoj spoj_i : spoj_j.getMoznePredchadzajuceSpoje())
+            for(SpojOld spoj_i : spoj_j.getMoznePredchadzajuceSpoje())
             {
                 int i = spoj_i.getID();
-                GRBVar x_ij = x.get(new Dvojica<>(i,j));
+                GRBVar x_ij = x.get(new DvojicaOld<>(i,j));
                 expr.addTerm(1, x_ij);
             }
 
@@ -134,7 +134,7 @@ public class MinimalizaciaPrejazdov
         }
 
         // Pridať druhý typ podmienok - po každom spoji i bude nasledovať jeden spoj j (alebo bude posledným spojom)
-        for (Spoj spoj_i : pSpoje.values())       // pre i = 1..n
+        for (SpojOld spoj_i : pSpoje.values())       // pre i = 1..n
         {
             int i = spoj_i.getID();
 
@@ -142,10 +142,10 @@ public class MinimalizaciaPrejazdov
             GRBVar v_i = this.v.get(i);
             expr.addTerm(1, v_i);
 
-            for(Spoj spoj_j : spoj_i.getMozneNasledujuceSpoje())
+            for(SpojOld spoj_j : spoj_i.getMozneNasledujuceSpoje())
             {
                 int j = spoj_j.getID();
-                GRBVar x_ij = x.get(new Dvojica<>(i,j));
+                GRBVar x_ij = x.get(new DvojicaOld<>(i,j));
                 expr.addTerm(1, x_ij);
             }
 
@@ -168,12 +168,12 @@ public class MinimalizaciaPrejazdov
         this.prazdnePrejazdy = (int)model.get(GRB.DoubleAttr.ObjVal);
     }
 
-    public boolean vytvorSkontrolujTurnusy(LinkedHashMap<Integer, Spoj> pSpoje,
-                                           LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky,
-                                           LinkedHashMap<Dvojica<Integer, Integer>, Integer> DT,
-                                           LinkedHashMap<Dvojica<Integer, Integer>, Integer> T) throws GRBException {
+    public boolean vytvorSkontrolujTurnusy(LinkedHashMap<Integer, SpojOld> pSpoje,
+                                           LinkedHashMap<DvojicaOld<Integer, Integer>, UsekOld> pUseky,
+                                           LinkedHashMap<DvojicaOld<Integer, Integer>, Integer> DT,
+                                           LinkedHashMap<DvojicaOld<Integer, Integer>, Integer> T) throws GRBException {
         // Reset previous and successor trip IDs for all trips
-        for (Spoj spoj_i : pSpoje.values())
+        for (SpojOld spoj_i : pSpoje.values())
         {
             spoj_i.setNasledujuci(null);
             spoj_i.setPredchadzajuci(null);
@@ -182,14 +182,14 @@ public class MinimalizaciaPrejazdov
         this.turnusy = new ArrayList<>();
 
         // Z rozhodovacích premenných x_ij získaj všetky prepojenia spojov, a prepoj spoje
-        for (Dvojica<Integer, Integer> x_ij : x.keySet()) {
+        for (DvojicaOld<Integer, Integer> x_ij : x.keySet()) {
             try {
                 if (x.get(x_ij).get(GRB.DoubleAttr.X) == 1.0) {      //získaj hodnotu riešenia x (0 či 1)
                     int spoj_i_id = x_ij.prva();
-                    Spoj spoj_i = pSpoje.get(spoj_i_id);
+                    SpojOld spoj_i = pSpoje.get(spoj_i_id);
 
                     int spoj_j_id = x_ij.druha();
-                    Spoj spoj_j = pSpoje.get(spoj_j_id);
+                    SpojOld spoj_j = pSpoje.get(spoj_j_id);
 
                     // If the pair (i, j) is selected, set j as the successor of i and i as the previous of j
                     spoj_i.setNasledujuci(spoj_j);  // Set j as the successor of i
@@ -209,8 +209,8 @@ public class MinimalizaciaPrejazdov
             {
                 if(u_j.get(GRB.DoubleAttr.X) == 1)
                 {
-                    Spoj spoj_j = pSpoje.get(spoj_j_id);
-                    turnusy.add(new Turnus(new Zmena(spoj_j)));
+                    SpojOld spoj_j = pSpoje.get(spoj_j_id);
+                    turnusy.add(new TurnusOld(new ZmenaOld(spoj_j)));
                 }
             }
             catch (GRBException e)
@@ -256,7 +256,7 @@ public class MinimalizaciaPrejazdov
             GRBLinExpr expr = new GRBLinExpr();
             for (int i = 0; i < spoje.size() - 1; i++)
             {
-                GRBVar x_ij = x.get(new Dvojica<>(spoje.get(i), spoje.get(i+1)));
+                GRBVar x_ij = x.get(new DvojicaOld<>(spoje.get(i), spoje.get(i+1)));
                 expr.addTerm(1, x_ij);
             }
             model.addConstr(expr, GRB.LESS_EQUAL, spoje.size() - 2, "4_" + expr.getVar(0).get(GRB.StringAttr.VarName) + "_" + expr.getVar(expr.size()-1).get(GRB.StringAttr.VarName));
@@ -267,7 +267,7 @@ public class MinimalizaciaPrejazdov
         return prazdnePrejazdy;
     }
 
-    public ArrayList<Turnus> getTurnusy() {
+    public ArrayList<TurnusOld> getTurnusy() {
         return turnusy;
     }
 }

@@ -1,9 +1,9 @@
-package data;
+package dataOld;
 
 /**
  * Trieda reprezentujúca jednu zastávku.
  */
-public class Zastavka
+public class ZastavkaOld
 {
     /**
      * Jednoznačný idenfikátor zastávky.
@@ -18,7 +18,7 @@ public class Zastavka
      * @param pID ID zastávky
      * @param pNazov Názov zastávky
      */
-    public Zastavka(int pID, String pNazov)
+    public ZastavkaOld(int pID, String pNazov)
     {
         this.ID = pID;
         this.nazov = pNazov;

@@ -1,31 +1,31 @@
-package data;
+package dataOld;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-public class Linka
+public class LinkaOld
 {
     private final int ID;
     private int obsadenost;
-    private ArrayList<Spoj> spoje;
+    private ArrayList<SpojOld> spoje;
 
-    public Linka(int pID)
+    public LinkaOld(int pID)
     {
         this.ID = pID;
         this.spoje = new ArrayList<>();
         this.obsadenost = 0;
     }
 
-    public void pridajSpoj(Spoj pSpoj)
+    public void pridajSpoj(SpojOld pSpoj)
     {
         this.spoje.add(pSpoj);
         this.obsadenost += pSpoj.getObsadenost();
     }
-    public String[][] vypis(LinkedHashMap<Dvojica<Integer, Integer>, Usek> useky)
+    public String[][] vypis(LinkedHashMap<DvojicaOld<Integer, Integer>, UsekOld> useky)
     {
         String[][] udajeSpoje = new String[this.spoje.size()][9];
         int counter = 0;
-        for (Spoj spoj_i: this.spoje)
+        for (SpojOld spoj_i: this.spoje)
         {
             udajeSpoje[counter] = spoj_i.vypis(useky);
             counter++;
@@ -37,7 +37,7 @@ public class Linka
         return ID;
     }
 
-    public ArrayList<Spoj> getSpoje()
+    public ArrayList<SpojOld> getSpoje()
     {
         return this.spoje;
     }

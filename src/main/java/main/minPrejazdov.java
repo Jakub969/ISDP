@@ -1,7 +1,7 @@
 package main;
 
 import com.gurobi.gurobi.*;
-import data.Dvojica;
+import dataOld.DvojicaOld;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -11,12 +11,12 @@ import java.util.concurrent.TimeUnit;
 public class minPrejazdov {
     public static void runModel1() throws GRBException {
         try {
-            HashMap<Dvojica<Integer, Integer>, Integer> distances = loadDistances("dist.txt");
+            HashMap<DvojicaOld<Integer, Integer>, Integer> distances = loadDistances("dist.txt");
             Map<Integer, Integer[]> trips = loadTrips("trips.txt");
             System.out.println("Trips: " + trips.size());
 
             long startTime = System.nanoTime();
-            Map<Dvojica<Integer, Integer>, GRBVar> x = new TreeMap<>();
+            Map<DvojicaOld<Integer, Integer>, GRBVar> x = new TreeMap<>();
             GRBModel model = createModel(trips, distances, x);
 
             long finishTime = System.nanoTime();
@@ -57,7 +57,7 @@ public class minPrejazdov {
                     for (Integer[] ss : spoje) {
                         GRBLinExpr expr = new GRBLinExpr();
                         for (int i = 0; i < ss.length - 1; i++) {
-                            expr.addTerm(1.0, x.get(new Dvojica<>(ss[i], ss[i+1])));
+                            expr.addTerm(1.0, x.get(new DvojicaOld<>(ss[i], ss[i+1])));
                         }
                         model.addConstr(expr, GRB.LESS_EQUAL, ss.length - 2, "");
                     }
@@ -284,8 +284,8 @@ public class minPrejazdov {
         return model;
     }
      */
-    public static HashMap<Dvojica<Integer, Integer>, Integer> loadDistances(String fileName) {
-        HashMap<Dvojica<Integer, Integer>, Integer> distances = new HashMap<>();
+    public static HashMap<DvojicaOld<Integer, Integer>, Integer> loadDistances(String fileName) {
+        HashMap<DvojicaOld<Integer, Integer>, Integer> distances = new HashMap<>();
         try {
             File file = new File(fileName);
             Scanner scanner = new Scanner(file);
@@ -295,10 +295,10 @@ public class minPrejazdov {
                 int u = Integer.parseInt(cols[0]);
                 int v = Integer.parseInt(cols[1]);
                 int c = Integer.parseInt(cols[2]);
-                distances.put(new Dvojica<>(u,v), c);
-                distances.put(new Dvojica<>(v,u), c);
-                distances.put(new Dvojica<>(u,u), 0);
-                distances.put(new Dvojica<>(v,v), 0);
+                distances.put(new DvojicaOld<>(u,v), c);
+                distances.put(new DvojicaOld<>(v,u), c);
+                distances.put(new DvojicaOld<>(u,u), 0);
+                distances.put(new DvojicaOld<>(v,v), 0);
             }
             scanner.close();
         } catch (FileNotFoundException e) {
@@ -370,12 +370,12 @@ public class minPrejazdov {
 
         return totalMinutes;
     }
-    public static GRBModel createModel(Map<Integer, Integer[]> trips, Map<Dvojica<Integer, Integer>, Integer> distances, Map<Dvojica<Integer, Integer>, GRBVar> x) throws GRBException {
+    public static GRBModel createModel(Map<Integer, Integer[]> trips, Map<DvojicaOld<Integer, Integer>, Integer> distances, Map<DvojicaOld<Integer, Integer>, GRBVar> x) throws GRBException {
         // Inicializace modelu
         GRBEnv env = new GRBEnv();
         GRBModel model = new GRBModel(env);
 
-        Map<Dvojica<Integer, Integer>, Integer> cx = new TreeMap<>();
+        Map<DvojicaOld<Integer, Integer>, Integer> cx = new TreeMap<>();
 
         // Procházení všech dvojic výletů
         for (Integer i : trips.keySet()) {
@@ -386,14 +386,14 @@ public class minPrejazdov {
                 Integer[] trip_j = trips.get(j);
                 int dep_stop_j = trip_j[3];
                 int dep_time_j = trip_j[4];
-                int dist = distances.get(new Dvojica<>(arr_stop_i, dep_stop_j));
+                int dist = distances.get(new DvojicaOld<>(arr_stop_i, dep_stop_j));
 
                 // Podmínka pro spojení výletů
                 if (arr_time_i + dist <= dep_time_j) {
                     // Přidání binární proměnné do modelu pro spojení výletů i a j
-                    x.put(new Dvojica<>(i,j), model.addVar(0, 1, 0, GRB.BINARY, "x_" + i + "_" + j));
+                    x.put(new DvojicaOld<>(i,j), model.addVar(0, 1, 0, GRB.BINARY, "x_" + i + "_" + j));
                     // Přidání vzdálenosti mezi zastávkami do slovníku cx
-                    cx.put(new Dvojica<>(i,j), dist);
+                    cx.put(new DvojicaOld<>(i,j), dist);
                 }
             }
         }
@@ -404,7 +404,7 @@ public class minPrejazdov {
         for (Integer j : trips.keySet()) {
             Integer[] trip_j = trips.get(j);
             int dep_stop_j = trip_j[3];
-            int dist = distances.get(new Dvojica<>(59,dep_stop_j));
+            int dist = distances.get(new DvojicaOld<>(59,dep_stop_j));
             // Přidání binární proměnné do modelu pro spojení na začátku výletu
             GRBVar var = model.addVar(0.0, 1.0, 0.0, GRB.BINARY, "u" + j);
             u.put(j, var);
@@ -418,7 +418,7 @@ public class minPrejazdov {
         for (Integer i : trips.keySet()) {
             Integer[] trip_i = trips.get(i);
             int arr_stop_i = trip_i[5];
-            int dist = distances.get(new Dvojica<>(arr_stop_i,59));
+            int dist = distances.get(new DvojicaOld<>(arr_stop_i,59));
             // Přidání binární proměnné do modelu pro spojení na konci výletu
             GRBVar var = model.addVar(0.0, 1.0, 0.0, GRB.BINARY, "v" + i);
             v.put(i, var);
@@ -431,7 +431,7 @@ public class minPrejazdov {
 
         // Vytvoření cílové funkce modelu
         GRBLinExpr expr = new GRBLinExpr();
-        for (Dvojica dvojica : x.keySet()) {
+        for (DvojicaOld dvojica : x.keySet()) {
             expr.addTerm(cx.get(dvojica), x.get(dvojica));
         }
         for (Integer j : u.keySet()) {
@@ -446,7 +446,7 @@ public class minPrejazdov {
         for (Integer k : trips.keySet()) {
             expr = new GRBLinExpr();
             expr.addTerm(1.0, u.get(k));
-            for (Dvojica<Integer, Integer> dvojica : x.keySet()) {
+            for (DvojicaOld<Integer, Integer> dvojica : x.keySet()) {
                 int j = dvojica.druha();
                 if (j == k) {
                     expr.addTerm(1.0, x.get(dvojica));
@@ -459,7 +459,7 @@ public class minPrejazdov {
         for (Integer k : trips.keySet()) {
             expr = new GRBLinExpr();
             expr.addTerm(1.0, v.get(k));
-            for (Dvojica<Integer, Integer> dvojica : x.keySet()) {
+            for (DvojicaOld<Integer, Integer> dvojica : x.keySet()) {
                 int i = dvojica.prva();
                 if (i == k) {
                     expr.addTerm(1.0, x.get(dvojica));
@@ -470,7 +470,7 @@ public class minPrejazdov {
 
         // Přidání omezení pro celkový počet spojů
         expr = new GRBLinExpr();
-        for (Dvojica<Integer, Integer> dvojica : x.keySet()) {
+        for (DvojicaOld<Integer, Integer> dvojica : x.keySet()) {
             expr.addTerm(1.0, x.get(dvojica));
         }
         model.addConstr(expr, GRB.EQUAL, trips.size() - 39, "total_connections");
@@ -481,7 +481,7 @@ public class minPrejazdov {
         // Návrat modelu
         return model;
     }
-    public static List<List<Integer[]>> getResult(Map<Integer, Integer[]> trips, Map<Dvojica<Integer, Integer>, Integer> distances, GRBModel m, Map<Dvojica<Integer, Integer>, GRBVar> x) {
+    public static List<List<Integer[]>> getResult(Map<Integer, Integer[]> trips, Map<DvojicaOld<Integer, Integer>, Integer> distances, GRBModel m, Map<DvojicaOld<Integer, Integer>, GRBVar> x) {
         // Reset previous and successor trip IDs for all trips
         for (int i : trips.keySet()) {
             trips.get(i)[7] = -1;  // Previous trip ID
@@ -489,7 +489,7 @@ public class minPrejazdov {
         }
 
         // Determine previous and successor trip IDs for selected pairs
-        for (Dvojica<Integer, Integer> x_i : x.keySet()) {
+        for (DvojicaOld<Integer, Integer> x_i : x.keySet()) {
             int i = x_i.prva();  // Obsahuje "13"
             int j = x_i.druha(); // Obsahuje "56"
 
@@ -524,7 +524,7 @@ public class minPrejazdov {
 
         return rotations;
     }
-    public static void printTurnusy(List<List<Integer[]>> rotations, Map<Dvojica<Integer, Integer>, Integer> distances) {
+    public static void printTurnusy(List<List<Integer[]>> rotations, Map<DvojicaOld<Integer, Integer>, Integer> distances) {
         // Výpis hlavičky tabulky
         System.out.println("Tur\tZac\tKon\tPrist\tOdst\tPrej");
 
@@ -538,15 +538,15 @@ public class minPrejazdov {
             List<Integer[]> rot = rotations.get(k);
 
             // Výpočet přestávky na přistavení a odstavení
-            int pristav = distances.get(new Dvojica<>(59,rot.get(0)[3]));
-            int odstav = distances.get(new Dvojica<>(rot.get(rot.size() - 1)[5],59));
+            int pristav = distances.get(new DvojicaOld<>(59,rot.get(0)[3]));
+            int odstav = distances.get(new DvojicaOld<>(rot.get(rot.size() - 1)[5],59));
 
             // Výpočet celkové délky přejezdů v rotaci
             int prejazd = 0;
             for (int i = 0; i < rot.size() - 1; i++) {
                 int u = rot.get(i)[5];
                 int v = rot.get(i + 1)[3];
-                prejazd += distances.get(new Dvojica<>(u,v));
+                prejazd += distances.get(new DvojicaOld<>(u,v));
             }
 
             // Výpočet začátku a konce turnusu
@@ -571,15 +571,15 @@ public class minPrejazdov {
         int m = time % 60;
         return String.format("%02d:%02d", h, m);
     }
-    public static ArrayList<ArrayList<Integer[]>> kontrolujTurnus(int tur, List<Integer[]> rotation, HashMap<Dvojica<Integer, Integer>, Integer> distances) {
+    public static ArrayList<ArrayList<Integer[]>> kontrolujTurnus(int tur, List<Integer[]> rotation, HashMap<DvojicaOld<Integer, Integer>, Integer> distances) {
         // Inicializace seznamu spojů
         ArrayList<ArrayList<Integer[]>> spoje = new ArrayList<>();
 
         //Výpočet přestávek na přistavení a odstavení na začátku a konci turnusu
-        int pristav = distances.get(new Dvojica<>(59, rotation.get(0)[3]));
+        int pristav = distances.get(new DvojicaOld<>(59, rotation.get(0)[3]));
         rotation.get(0)[9] = pristav;   //čas na přistavení na začátku turnusu
 
-        int odstav = distances.get(new Dvojica<>(rotation.get(rotation.size() - 1)[5], 59));
+        int odstav = distances.get(new DvojicaOld<>(rotation.get(rotation.size() - 1)[5], 59));
         rotation.get(rotation.size() - 1)[10] = odstav;     //čas na odstavení na konci turnusu
 
         // Výpočet celkové délky přejezdu a začátku a konce turnusu
@@ -591,7 +591,7 @@ public class minPrejazdov {
         for (int i = 0; i < rotation.size() - 1; i++) {
             int u = rotation.get(i)[5];
             int v = rotation.get(i + 1)[3];
-            int prejazd = distances.get(new Dvojica<>(u,v));
+            int prejazd = distances.get(new DvojicaOld<>(u,v));
             rotation.get(i)[10] = prejazd;  //Délka přejezdu mezi spoji
             rotation.get(i)[11] = rotation.get(i + 1)[4] - rotation.get(i)[6] - prejazd;    //Přestávka mezi spoji
             prejazd_spolu += prejazd;       //Celková délka přejezdů
@@ -672,13 +672,13 @@ public class minPrejazdov {
         }
         return spoje;
     }
-    public static void printTurnus(int tur, List<Integer[]> rotation, HashMap<Dvojica<Integer, Integer>, Integer> distances) {
+    public static void printTurnus(int tur, List<Integer[]> rotation, HashMap<DvojicaOld<Integer, Integer>, Integer> distances) {
         // Výpočet přestávky na přistavení na začátku turnusu
-        int pristav = distances.get(new Dvojica<>(59, rotation.get(0)[3]));
+        int pristav = distances.get(new DvojicaOld<>(59, rotation.get(0)[3]));
         rotation.get(0)[9] = pristav;
 
         // Výpočet přestávky na odstavení na konci turnusu
-        int odstav = distances.get(new Dvojica<>(rotation.get(rotation.size() - 1)[5], 59));
+        int odstav = distances.get(new DvojicaOld<>(rotation.get(rotation.size() - 1)[5], 59));
         rotation.get(rotation.size() - 1)[10] = odstav;
 
         // Výpočet začátku a konce turnusu
@@ -692,7 +692,7 @@ public class minPrejazdov {
         for (int i = 0; i < rotation.size() - 1; i++) {
             int u = rotation.get(i)[5];
             int v = rotation.get(i + 1)[3];
-            int prejazd = distances.get(new Dvojica<>(u, v));
+            int prejazd = distances.get(new DvojicaOld<>(u, v));
             rotation.get(i)[10] = prejazd;  // Délka přejezdu
             rotation.get(i)[11] = rotation.get(i + 1)[4] - rotation.get(i)[6] - prejazd;  // Přestávka mezi spoji
             prejazd_spolu += prejazd;  // Celková délka přejezdů

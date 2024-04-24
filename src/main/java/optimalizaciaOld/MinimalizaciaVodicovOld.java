@@ -1,42 +1,42 @@
-package optimalizacia;
+package optimalizaciaOld;
 
 import com.gurobi.gurobi.*;
-import data.*;
-import mvp.Model;
+import dataOld.*;
+import mvpOld.ModelOld;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class MinimalizaciaVodicov
+public class MinimalizaciaVodicovOld
 {
-    private Map<Dvojica<Integer, Integer>, GRBVar> x;
-    private Map<Dvojica<Integer, Integer>, GRBVar> y;
+    private Map<DvojicaOld<Integer, Integer>, GRBVar> x;
+    private Map<DvojicaOld<Integer, Integer>, GRBVar> y;
     private Map<Integer, GRBVar> t;
     private Map<Integer, GRBVar> z;
     private Map<Integer, GRBVar> u;
     private Map<Integer, GRBVar> v;
     private int pocetVodicov;
-    private ArrayList<Turnus> turnusy;
+    private ArrayList<TurnusOld> turnusy;
     private GRBModel model;
 
-    public MinimalizaciaVodicov(int pPocetBusov,
-                                LinkedHashMap<Integer, Spoj> pSpoje, LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky,
-                                LinkedHashMap<Dvojica<Integer, Integer>, Integer> DT,
-                                LinkedHashMap<Dvojica<Integer, Integer>, Integer> T) throws GRBException
+    public MinimalizaciaVodicovOld(int pPocetBusov,
+                                   LinkedHashMap<Integer, SpojOld> pSpoje, LinkedHashMap<DvojicaOld<Integer, Integer>, UsekOld> pUseky,
+                                   LinkedHashMap<DvojicaOld<Integer, Integer>, Integer> DT,
+                                   LinkedHashMap<DvojicaOld<Integer, Integer>, Integer> T) throws GRBException
     {
         this.pripravModel(pSpoje);
         this.vypocitajModel(pPocetBusov, pSpoje, pUseky, DT, T);
     }
 
-    private void pripravModel(LinkedHashMap<Integer, Spoj> pSpoje)
+    private void pripravModel(LinkedHashMap<Integer, SpojOld> pSpoje)
     {
         // Reset previous and successor trip IDs for all trips
-        for (Spoj spoj_i : pSpoje.values())
+        for (SpojOld spoj_i : pSpoje.values())
         {
             spoj_i.setNasledujuci(null);
-            spoj_i.setPredchadzajuci(null); //TODO
+            spoj_i.setPredchadzajuci(null);
         }
 
         this.x = new LinkedHashMap<>();
@@ -47,9 +47,9 @@ public class MinimalizaciaVodicov
         this.z = new LinkedHashMap<>();
     }
     private void vypocitajModel(int pPocetBusov,
-                                Map<Integer, Spoj> pSpoje, LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky,
-                                LinkedHashMap<Dvojica<Integer, Integer>, Integer> DT,
-                                LinkedHashMap<Dvojica<Integer, Integer>, Integer> T) throws GRBException
+                                Map<Integer, SpojOld> pSpoje, LinkedHashMap<DvojicaOld<Integer, Integer>, UsekOld> pUseky,
+                                LinkedHashMap<DvojicaOld<Integer, Integer>, Integer> DT,
+                                LinkedHashMap<DvojicaOld<Integer, Integer>, Integer> T) throws GRBException
     {
         // Create a new optimization model
         GRBEnv env = new GRBEnv();
@@ -59,77 +59,78 @@ public class MinimalizaciaVodicov
 
         //model.set(GRB.DoubleParam.NoRelHeurTime, 150);
         //tmodel.set(GRB.IntParam.Presolve, 2);
-        //model.set(GRB.IntParam.NodeMethod, 2);
+        //model.set(GRB.IntParam.NodeMethod, 1);
+        //model.set(GRB.DoubleParam.NodeLimit, 186830);
         //model.set(GRB.IntParam.ConcurrentMethod, 0);
         //model..set(GRB.DoubleParam.TimeLimit, 100.0);
-        //model.set(GRB.IntParam.MIPFocus, 3);
+        //model.set(GRB.IntParam.MIPFocus,1);
         //model.set(GRB.IntParam.Cuts, 2);
         //model.set(GRB.IntParam.Method, 5);
-        //model.set(GRB.DoubleParam.MIPGap, 0.0277);
+        model.set(GRB.DoubleParam.MIPGap, 0.332);
         //model.set(GRB.DoubleParam.ImproveStartTime, 3 * 60);
-       // model.set(GRB.DoubleParam.Heuristics, 0.9);
+        //model.set(GRB.DoubleParam.Heuristics, 0.9);
 
         // Vytvoriť všetky premenné x_ij
-        Map<Dvojica<Integer, Integer>, Integer> cx = new LinkedHashMap<>();
-        for (Spoj spoj_i : pSpoje.values())
+        Map<DvojicaOld<Integer, Integer>, Integer> cx = new LinkedHashMap<>();
+        for (SpojOld spoj_i : pSpoje.values())
         {
             int i = spoj_i.getID();
-            for (Spoj spoj_j : spoj_i.getMozneNasledujuceSpoje())
+            for (SpojOld spoj_j : spoj_i.getMozneNasledujuceSpoje())
             {
                 int j = spoj_j.getID();
-                Dvojica<Integer, Integer> prechod = new Dvojica<>(i, j);
+                DvojicaOld<Integer, Integer> prechod = new DvojicaOld<>(i, j);
                 int mpr_i = spoj_i.getMiestoPrichoduID();
                 int mod_j = spoj_j.getMiestoOdchoduID();
-                int dist = pUseky.get(new Dvojica<>(mpr_i, mod_j)).getCasPrejazdu();
+                int dist = pUseky.get(new DvojicaOld<>(mpr_i, mod_j)).getCasPrejazdu();
                 this.x.put(prechod, model.addVar(0, 1, 0, GRB.BINARY, "x_" + i + "_" + j));
                 cx.put(prechod, dist);
             }
         }
 
         // Vytvoriť všetky premenné y_ij
-        Map<Dvojica<Integer, Integer>, Integer> cy = new LinkedHashMap<>();
-        for (Spoj spoj_i : pSpoje.values())
+        Map<DvojicaOld<Integer, Integer>, Integer> cy = new LinkedHashMap<>();
+        for (SpojOld spoj_i : pSpoje.values())
         {
             int i = spoj_i.getID();
-            for (Spoj spoj_j : spoj_i.getMozneNasledujuceSpojeVodic())
+            for (SpojOld spoj_j : spoj_i.getMozneNasledujuceSpojeVodic())
             {
                 int j = spoj_j.getID();
-                Dvojica<Integer, Integer> prechod = new Dvojica<>(i, j);
+                DvojicaOld<Integer, Integer> prechod = new DvojicaOld<>(i, j);
                 int mpr_i = spoj_i.getMiestoPrichoduID();
                 int mod_j = spoj_j.getMiestoOdchoduID();
-                int dist = pUseky.get(new Dvojica<>(mpr_i, Model.DEPO)).getCasPrejazdu();
-                dist += pUseky.get(new Dvojica<>(Model.DEPO, mod_j)).getCasPrejazdu();
+                int dist = pUseky.get(new DvojicaOld<>(mpr_i, ModelOld.DEPO)).getCasPrejazdu();
+                dist += pUseky.get(new DvojicaOld<>(ModelOld.DEPO, mod_j)).getCasPrejazdu();
                 this.y.put(prechod, model.addVar(0, 1, 0, GRB.BINARY, "y_" + i + "_" + j));
                 cy.put(prechod, dist);
             }
         }
 
         // Vytvoriť všetky premenné t_j a z_j
-        for (Spoj spoj_j : pSpoje.values())
+        for (SpojOld spoj_j : pSpoje.values())
         {
             int j = spoj_j.getID();
-            this.t.put(j, model.addVar(0, Model.K, 0, GRB.INTEGER, "t_" + j));
-            this.z.put(j, model.addVar(0, Model.K, 0, GRB.INTEGER, "z_" + j));
+            this.t.put(j, model.addVar(0, ModelOld.DT_MAX, 0, GRB.INTEGER, "t_" + j));
+            this.z.put(j, model.addVar(0, ModelOld.T_MAX, 0, GRB.INTEGER, "z_" + j));
         }
 
         // Vytvoriť všetky premenné u_j
         Map<Integer, Integer> cu = new LinkedHashMap<>();
-        for (Spoj spoj_j : pSpoje.values())
+        for (SpojOld spoj_j : pSpoje.values())
         {
             int j = spoj_j.getID();
             int mod_j = spoj_j.getMiestoOdchoduID();
-            int dist = pUseky.get(new Dvojica<>(Model.DEPO, mod_j)).getCasPrejazdu();
+            int dist = pUseky.get(new DvojicaOld<>(ModelOld.DEPO, mod_j)).getCasPrejazdu();
             u.put(j, model.addVar(0, 1, 0, GRB.BINARY, "u_" + j));
             cu.put(j, dist);
         }
 
         // Vytvoriť všetky premenné v_i
         Map<Integer, Integer> cv = new LinkedHashMap<>();
-        for (Spoj spoj_i : pSpoje.values())
+        for (SpojOld spoj_i : pSpoje.values())
         {
             int i = spoj_i.getID();
             int mpr_i = spoj_i.getMiestoPrichoduID();
-            int dist = pUseky.get(new Dvojica<>(mpr_i, Model.DEPO)).getCasPrejazdu();
+            int dist = pUseky.get(new DvojicaOld<>(mpr_i, ModelOld.DEPO)).getCasPrejazdu();
             v.put(i, model.addVar(0, 1, 0, GRB.BINARY, "v_" + i));
             cv.put(i, dist);
         }
@@ -140,32 +141,32 @@ public class MinimalizaciaVodicov
         //  Minimalizuj    c_vodič * (|S| - ∑_(ij,(i,j)∈E) [x_ij] )
         GRBLinExpr objExpr = new GRBLinExpr();
 
-        objExpr.addConstant(Model.C_VODIC * pSpoje.size());
-
-        for (GRBVar var : this.x.values())
-        {
-            objExpr.addTerm(-Model.C_VODIC, var);
-        }
-
         //  + c_km * ( ∑_(ij,(i,j)∈E) [m(mpr_i, mod_j) * x_ij]
         //           + ∑_(ij,(i,j)∈F) [(m(mpr_i,D) + m(D,mod_j)) * y_ij]
         //           + ∑_(j∈S) [m(D,mod_j) * u_j]
         //           + ∑_(i∈S) [m(mpr_i,D) * v_i])
 
-        for (Map.Entry<Dvojica<Integer, Integer>, GRBVar> entry : this.x.entrySet())
+        objExpr.addConstant(ModelOld.C_VODIC * pSpoje.size());
+
+        for (GRBVar var : this.x.values())
         {
-            Dvojica<Integer, Integer> key = entry.getKey();
-            GRBVar x_ij = entry.getValue();
-            int cx_ij = cx.get(key);
-            objExpr.addTerm(Model.C_KM * cx_ij, x_ij);
+            objExpr.addTerm(-ModelOld.C_VODIC, var);
         }
 
-        for (Map.Entry<Dvojica<Integer, Integer>, GRBVar> entry : this.y.entrySet())
+        for (Map.Entry<DvojicaOld<Integer, Integer>, GRBVar> entry : this.x.entrySet())
         {
-            Dvojica<Integer, Integer> key = entry.getKey();
+            DvojicaOld<Integer, Integer> key = entry.getKey();
+            GRBVar x_ij = entry.getValue();
+            int cx_ij = cx.get(key);
+            objExpr.addTerm(ModelOld.C_KM * cx_ij, x_ij);
+        }
+
+        for (Map.Entry<DvojicaOld<Integer, Integer>, GRBVar> entry : this.y.entrySet())
+        {
+            DvojicaOld<Integer, Integer> key = entry.getKey();
             GRBVar y_ij = entry.getValue();
             int cy_ij = cy.get(key);
-            objExpr.addTerm(Model.C_KM * cy_ij, y_ij);
+            objExpr.addTerm(ModelOld.C_KM * cy_ij, y_ij);
         }
 
         for (Map.Entry<Integer, GRBVar> entry : this.u.entrySet())
@@ -173,7 +174,7 @@ public class MinimalizaciaVodicov
             int spoj_id = entry.getKey();
             GRBVar u_j = entry.getValue();
             int cu_j = cu.get(spoj_id);
-            objExpr.addTerm(Model.C_KM * cu_j, u_j);
+            objExpr.addTerm(ModelOld.C_KM * cu_j, u_j);
         }
 
         for (Map.Entry<Integer, GRBVar> entry : this.v.entrySet())
@@ -181,14 +182,14 @@ public class MinimalizaciaVodicov
             int spoj_id = entry.getKey();
             GRBVar v_i = entry.getValue();
             int cv_i = cv.get(spoj_id);
-            objExpr.addTerm(Model.C_KM * cv_i, v_i);
+            objExpr.addTerm(ModelOld.C_KM * cv_i, v_i);
         }
 
         model.setObjective(objExpr, GRB.MINIMIZE);
         model.update();
 
         // Pridať 1. typ podmienok - každý spoj j bude nasledovať po jednom spoji i (alebo bude prvým spojom)
-        for (Spoj spoj_j : pSpoje.values())       // pre j = 1..n
+        for (SpojOld spoj_j : pSpoje.values())       // pre j = 1..n
         {
             int j = spoj_j.getID();
 
@@ -196,17 +197,17 @@ public class MinimalizaciaVodicov
             GRBVar u_j = this.u.get(j);
             expr.addTerm(1, u_j);
 
-            for(Spoj spoj_i : spoj_j.getMoznePredchadzajuceSpoje())
+            for(SpojOld spoj_i : spoj_j.getMoznePredchadzajuceSpoje())
             {
                 int i = spoj_i.getID();
-                GRBVar x_ij = this.x.get(new Dvojica<>(i,j));
+                GRBVar x_ij = this.x.get(new DvojicaOld<>(i,j));
                 expr.addTerm(1, x_ij);
             }
 
-            for(Spoj spoj_i : spoj_j.getMoznePredchadzajuceSpojeVodic())
+            for(SpojOld spoj_i : spoj_j.getMoznePredchadzajuceSpojeVodic())
             {
                 int i = spoj_i.getID();
-                GRBVar y_ij = this.y.get(new Dvojica<>(i,j));
+                GRBVar y_ij = this.y.get(new DvojicaOld<>(i,j));
                 expr.addTerm(1, y_ij);
             }
 
@@ -214,7 +215,7 @@ public class MinimalizaciaVodicov
         }
 
         // Pridať 2. typ podmienok - po každom spoji i bude nasledovať jeden spoj j (alebo bude posledným spojom)
-        for (Spoj spoj_i : pSpoje.values())       // pre i = 1..n
+        for (SpojOld spoj_i : pSpoje.values())       // pre i = 1..n
         {
             int i = spoj_i.getID();
 
@@ -222,17 +223,17 @@ public class MinimalizaciaVodicov
             GRBVar v_i = this.v.get(i);
             expr.addTerm(1, v_i);
 
-            for(Spoj spoj_j : spoj_i.getMozneNasledujuceSpoje())
+            for(SpojOld spoj_j : spoj_i.getMozneNasledujuceSpoje())
             {
                 int j = spoj_j.getID();
-                GRBVar x_ij = x.get(new Dvojica<>(i,j));
+                GRBVar x_ij = x.get(new DvojicaOld<>(i,j));
                 expr.addTerm(1, x_ij);
             }
 
-            for(Spoj spoj_j : spoj_i.getMozneNasledujuceSpojeVodic())
+            for(SpojOld spoj_j : spoj_i.getMozneNasledujuceSpojeVodic())
             {
                 int j = spoj_j.getID();
-                GRBVar y_ij = this.y.get(new Dvojica<>(i,j));
+                GRBVar y_ij = this.y.get(new DvojicaOld<>(i,j));
                 expr.addTerm(1, y_ij);
             }
 
@@ -252,13 +253,13 @@ public class MinimalizaciaVodicov
         model.addConstr(expr3, GRB.EQUAL, pSpoje.size() - pPocetBusov, "3_total_connections");
 
         // Pridať 4. typ podmienok - t_j ≥ t_i + DT_ij*x_ij + (cpr_j - cod_j) - K*(1 - x_ij)  pre (i,j) ∈ E
-        for (Spoj spoj_j : pSpoje.values())       // pre j = 1..n
+        for (SpojOld spoj_j : pSpoje.values())       // pre j = 1..n
         {
             int j = spoj_j.getID();
             int trvanieJ = spoj_j.getTrvanieSpoja();
             GRBVar t_j = this.t.get(j);
 
-            for(Spoj spoj_i : spoj_j.getMoznePredchadzajuceSpoje())
+            for(SpojOld spoj_i : spoj_j.getMoznePredchadzajuceSpoje())
             {
                 GRBLinExpr expr4 = new GRBLinExpr();
 
@@ -266,20 +267,20 @@ public class MinimalizaciaVodicov
                 GRBVar t_i = this.t.get(i);
                 expr4.addTerm(1, t_i);
 
-                int dt_ij = DT.get(new Dvojica<>(i,j));
-                GRBVar x_ij = this.x.get(new Dvojica<>(i,j));
+                int dt_ij = DT.get(new DvojicaOld<>(i,j));
+                GRBVar x_ij = this.x.get(new DvojicaOld<>(i,j));
                 expr4.addTerm(dt_ij, x_ij);
 
                 expr4.addConstant(trvanieJ);
-                expr4.addConstant(-Model.K);
-                expr4.addTerm(Model.K, x_ij);
+                expr4.addConstant(-ModelOld.K);
+                expr4.addTerm(ModelOld.K, x_ij);
 
-                model.addConstr(t_j, GRB.GREATER_EQUAL, expr4, "4_driving_time_constraint_" + i + "_" + j);
+                model.addConstr(expr4, GRB.LESS_EQUAL, t_j, "4_driving_time_constraint_" + i + "_" + j);
             }
         }
 
         // Pridať 5. typ podmienok - t_j ≥ m(D, mod_j) + (cpr_j - cod_j) - K*(1 - u_j)   pre j ∈ S
-        for (Spoj spoj_j : pSpoje.values())       // pre j = 1..n
+        for (SpojOld spoj_j : pSpoje.values())       // pre j = 1..n
         {
             int j = spoj_j.getID();
             GRBVar t_j = this.t.get(j);
@@ -287,21 +288,49 @@ public class MinimalizaciaVodicov
             GRBLinExpr expr5 = new GRBLinExpr();
 
             int mod_j = spoj_j.getMiestoOdchoduID();
-            int dist = pUseky.get(new Dvojica<>(Model.DEPO, mod_j)).getCasPrejazdu();
+            int dist = pUseky.get(new DvojicaOld<>(ModelOld.DEPO, mod_j)).getCasPrejazdu();
             expr5.addConstant(dist);
 
             int trvanieJ = spoj_j.getTrvanieSpoja();
             expr5.addConstant(trvanieJ);
 
             GRBVar u_j = this.u.get(j);
-            expr5.addConstant(-Model.K);
-            expr5.addTerm(Model.K, u_j);
+            expr5.addConstant(-ModelOld.K);
+            expr5.addTerm(ModelOld.K, u_j);
 
-            model.addConstr(t_j, GRB.GREATER_EQUAL, expr5, "5_driving_time_depo_constraint_" + j);
+            model.addConstr(expr5, GRB.LESS_EQUAL, t_j, "5_driving_time_depo_constraint_" + j);
         }
 
+        /* TODO
+        // Pridať ?. typ podmienok - t_j ≥ m(D, mod_j) + (cpr_j - cod_j) - K*(1 - y_ij)    pre (i,j) ∈ F
+        for (SpojOld spoj_j : pSpoje.values())       // pre j = 1..n
+        {
+            int j = spoj_j.getID();
+            int trvanieJ = spoj_j.getTrvanieSpoja();
+            GRBVar t_j = this.t.get(j);
+
+            for(SpojOld spoj_i : spoj_j.getMoznePredchadzajuceSpojeVodic())
+            {
+                GRBLinExpr expr5 = new GRBLinExpr();
+                int i = spoj_i.getID();
+                int mod_j = spoj_j.getMiestoOdchoduID();
+                int dist = pUseky.get(new DvojicaOld<>(ModelOld.DEPO, mod_j)).getCasPrejazdu();
+                expr5.addConstant(dist);
+
+                expr5.addConstant(trvanieJ);
+
+                GRBVar yi_j = this.y.get(new DvojicaOld<>(i,j));
+                expr5.addConstant(-ModelOld.K);
+                expr5.addTerm(ModelOld.K, yi_j);
+
+                model.addConstr(expr5, GRB.LESS_EQUAL, t_j, "5_5_driving_time_depo_constraint_" + j);
+            }
+        }
+         */
+
+
         // Pridať 6. typ podmienok - t_j + m(mpr_j,D) ≤ DT_max  pre j ∈ S
-        for (Spoj spoj_j : pSpoje.values())       // pre j = 1..n
+        for (SpojOld spoj_j : pSpoje.values())       // pre j = 1..n
         {
             int j = spoj_j.getID();
 
@@ -310,20 +339,20 @@ public class MinimalizaciaVodicov
             expr6.addTerm(1, t_j);
 
             int mpr_j = spoj_j.getMiestoPrichoduID();
-            int dist = pUseky.get(new Dvojica<>(mpr_j, Model.DEPO)).getCasPrejazdu();
+            int dist = pUseky.get(new DvojicaOld<>(mpr_j, ModelOld.DEPO)).getCasPrejazdu();
             expr6.addConstant(dist);
 
-            model.addConstr(expr6, GRB.LESS_EQUAL, Model.DT_MAX, "6_driving_time_max_constraint_" + j);
+            model.addConstr(expr6, GRB.LESS_EQUAL, ModelOld.DT_MAX, "6_driving_time_max_constraint_" + j);
         }
 
         // Pridať 7. typ podmienok - z_j ≥ z_i + T_ij*x_ij + (cpr_j - cod_j) - K*(1 - x_ij)  pre (i,j) ∈ E
-        for (Spoj spoj_j : pSpoje.values())       // pre j = 1..n
+        for (SpojOld spoj_j : pSpoje.values())       // pre j = 1..n
         {
             int j = spoj_j.getID();
             int trvanieJ = spoj_j.getTrvanieSpoja();
             GRBVar z_j = this.z.get(j);
 
-            for(Spoj spoj_i : spoj_j.getMoznePredchadzajuceSpoje())
+            for(SpojOld spoj_i : spoj_j.getMoznePredchadzajuceSpoje())
             {
                 GRBLinExpr expr7 = new GRBLinExpr();
 
@@ -331,21 +360,21 @@ public class MinimalizaciaVodicov
                 GRBVar z_i = this.z.get(i);
                 expr7.addTerm(1, z_i);
 
-                int t_ij = T.get(new Dvojica<>(i,j));
-                GRBVar x_ij = this.x.get(new Dvojica<>(i,j));
+                int t_ij = T.get(new DvojicaOld<>(i,j));
+                GRBVar x_ij = this.x.get(new DvojicaOld<>(i,j));
                 expr7.addTerm(t_ij, x_ij);
 
                 expr7.addConstant(trvanieJ);
 
-                expr7.addConstant(-Model.K);
-                expr7.addTerm(Model.K, x_ij);
+                expr7.addConstant(-ModelOld.K);
+                expr7.addTerm(ModelOld.K, x_ij);
 
-                model.addConstr(z_j, GRB.GREATER_EQUAL, expr7, "7_total_time_constraint_" + i + "_" + j);
+                model.addConstr(expr7, GRB.LESS_EQUAL, z_j, "7_total_time_constraint_" + i + "_" + j);
             }
         }
 
         // Pridať 8. typ podmienok - z_j ≥ m(D, mod_j) + (cpr_j - cod_j) - K*(1 - u_j)   pre j ∈ S
-        for (Spoj spoj_j : pSpoje.values())       // pre j = 1..n
+        for (SpojOld spoj_j : pSpoje.values())       // pre j = 1..n
         {
             int j = spoj_j.getID();
             GRBVar z_j = this.z.get(j);
@@ -353,21 +382,49 @@ public class MinimalizaciaVodicov
             GRBLinExpr expr8 = new GRBLinExpr();
 
             int mod_j = spoj_j.getMiestoOdchoduID();
-            int dist = pUseky.get(new Dvojica<>(Model.DEPO, mod_j)).getCasPrejazdu();
+            int dist = pUseky.get(new DvojicaOld<>(ModelOld.DEPO, mod_j)).getCasPrejazdu();
             expr8.addConstant(dist);
 
             int trvanieJ = spoj_j.getTrvanieSpoja();
             expr8.addConstant(trvanieJ);
 
             GRBVar u_j = this.u.get(j);
-            expr8.addConstant(-Model.K);
-            expr8.addTerm(Model.K, u_j);
+            expr8.addConstant(-ModelOld.K);
+            expr8.addTerm(ModelOld.K, u_j);
 
-            model.addConstr(z_j, GRB.GREATER_EQUAL, expr8, "8_total_time_depo_constraint_" + j);
+            model.addConstr(expr8, GRB.LESS_EQUAL, z_j, "8_total_time_depo_constraint_" + j);
         }
 
+        /* TODO
+                // Pridať ?. typ podmienok - z_j ≥ m(D, mod_j) + (cpr_j - cod_j) - K*(1 - y_ij)    pre (i,j) ∈ F
+        for (SpojOld spoj_j : pSpoje.values())       // pre j = 1..n
+        {
+            int j = spoj_j.getID();
+            int trvanieJ = spoj_j.getTrvanieSpoja();
+            GRBVar t_j = this.z.get(j);
+
+            for(SpojOld spoj_i : spoj_j.getMoznePredchadzajuceSpojeVodic())
+            {
+                GRBLinExpr expr5 = new GRBLinExpr();
+                int i = spoj_i.getID();
+                int mod_j = spoj_j.getMiestoOdchoduID();
+                int dist = pUseky.get(new DvojicaOld<>(ModelOld.DEPO, mod_j)).getCasPrejazdu();
+                expr5.addConstant(dist);
+
+                expr5.addConstant(trvanieJ);
+
+                GRBVar yi_j = this.y.get(new DvojicaOld<>(i,j));
+                expr5.addConstant(-ModelOld.K);
+                expr5.addTerm(ModelOld.K, yi_j);
+
+                model.addConstr(expr5, GRB.LESS_EQUAL, t_j, "8_5_driving_time_depo_constraint_" + j);
+            }
+        }
+         */
+
+
         // Pridať 9. typ podmienok - z_j + m(mpr_j,D) ≤ T_max  pre j ∈ S
-        for (Spoj spoj_j : pSpoje.values())       // pre j = 1..n
+        for (SpojOld spoj_j : pSpoje.values())       // pre j = 1..n
         {
             int j = spoj_j.getID();
 
@@ -376,16 +433,26 @@ public class MinimalizaciaVodicov
             expr9.addTerm(1, z_j);
 
             int mpr_j = spoj_j.getMiestoPrichoduID();
-            int dist = pUseky.get(new Dvojica<>(mpr_j, Model.DEPO)).getCasPrejazdu();
+            int dist = pUseky.get(new DvojicaOld<>(mpr_j, ModelOld.DEPO)).getCasPrejazdu();
             expr9.addConstant(dist);
 
-            model.addConstr(expr9, GRB.LESS_EQUAL, Model.T_MAX, "9_total_time_max_constraint_" + j);
+            model.addConstr(expr9, GRB.LESS_EQUAL, ModelOld.T_MAX, "9_total_time_max_constraint_" + j);
         }
+
+        // Pridať 10. typ podmienok TODO
+/*        GRBLinExpr expr10 = new GRBLinExpr();
+        for (GRBVar var : this.y.values())
+        {
+            expr10.addTerm(1, var);
+        }
+        model.addConstr(expr10, GRB.GREATER_EQUAL, 2, "10_min_vodicov");*/
+
+        //
 
         model.update();
 
         //optimalizuj model
-        model.write("minVodicov.lp");
+        model.write("minVodicov2.lp");
         model.optimize();
 
         //
@@ -397,31 +464,13 @@ public class MinimalizaciaVodicov
         }
         this.pocetVodicov = pSpoje.size() - sumX;
 
-        // ------
-        HashSet<String> printedVars = new HashSet<>();
-        GRBVar[] vars = model.getVars();
-
-        System.out.println("Nenulové rozhodovací proměnné:");
-        for (GRBVar var : vars) {
-            try {
-                double value = var.get(GRB.DoubleAttr.X);
-                if (value != 0 && !printedVars.contains(var.get(GRB.StringAttr.VarName))) {
-                    System.out.println(var.get(GRB.StringAttr.VarName) + " = " + value);
-                    printedVars.add(var.get(GRB.StringAttr.VarName));
-                }
-            } catch (GRBException e) {
-                // Handle exception
-                e.printStackTrace();
-            }
-        }
-
     }
-    public boolean vytvorSkontrolujTurnusy(LinkedHashMap<Integer, Spoj> pSpoje,
-                                           LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky,
-                                           LinkedHashMap<Dvojica<Integer, Integer>, Integer> DT,
-                                           LinkedHashMap<Dvojica<Integer, Integer>, Integer> T) throws GRBException {
+    public boolean vytvorSkontrolujTurnusy(LinkedHashMap<Integer, SpojOld> pSpoje,
+                                           LinkedHashMap<DvojicaOld<Integer, Integer>, UsekOld> pUseky,
+                                           LinkedHashMap<DvojicaOld<Integer, Integer>, Integer> DT,
+                                           LinkedHashMap<DvojicaOld<Integer, Integer>, Integer> T) throws GRBException {
         // Reset previous and successor trip IDs for all trips
-        for (Spoj spoj_i : pSpoje.values())
+        for (SpojOld spoj_i : pSpoje.values())
         {
             spoj_i.setNasledujuci(null);
             spoj_i.setPredchadzajuci(null);
@@ -430,14 +479,14 @@ public class MinimalizaciaVodicov
         this.turnusy = new ArrayList<>();
 
         // Z rozhodovacích premenných x_ij získaj všetky prepojenia spojov, a prepoj spoje
-        for (Dvojica<Integer, Integer> x_ij : x.keySet()) {
+        for (DvojicaOld<Integer, Integer> x_ij : x.keySet()) {
             try {
                 if (x.get(x_ij).get(GRB.DoubleAttr.X) == 1.0) {      //získaj hodnotu riešenia x (0 či 1)
                     int spoj_i_id = x_ij.prva();
-                    Spoj spoj_i = pSpoje.get(spoj_i_id);
+                    SpojOld spoj_i = pSpoje.get(spoj_i_id);
 
                     int spoj_j_id = x_ij.druha();
-                    Spoj spoj_j = pSpoje.get(spoj_j_id);
+                    SpojOld spoj_j = pSpoje.get(spoj_j_id);
 
                     // If the pair (i, j) is selected, set j as the successor of i and i as the previous of j
                     spoj_i.setNasledujuci(spoj_j);  // Set j as the successor of i
@@ -457,8 +506,8 @@ public class MinimalizaciaVodicov
             {
                 if(u_j.get(GRB.DoubleAttr.X) == 1)
                 {
-                    Spoj spoj_j = pSpoje.get(spoj_j_id);
-                    turnusy.add(new Turnus(new Zmena(spoj_j)));
+                    SpojOld spoj_j = pSpoje.get(spoj_j_id);
+                    turnusy.add(new TurnusOld(new ZmenaOld(spoj_j)));
                 }
             }
             catch (GRBException e)
@@ -467,20 +516,20 @@ public class MinimalizaciaVodicov
             }
         }
 
-        for (Dvojica<Integer, Integer> y_ij : y.keySet())
+        for (DvojicaOld<Integer, Integer> y_ij : y.keySet())
         {
             try {
                 if (y.get(y_ij).get(GRB.DoubleAttr.X) == 1.0) {      //získaj hodnotu riešenia y (0 či 1)
                     int spoj_i_id = y_ij.prva();
 
-                    for (Turnus turnus: turnusy)
+                    for (TurnusOld turnus: turnusy)
                     {
                         int poslednySpoj_id = turnus.getPrvaZmena().getPoslednySpoj().getID();
                         if(poslednySpoj_id == spoj_i_id)
                         {
                             int spoj_j_id = y_ij.druha();
-                            Spoj spoj_j = pSpoje.get(spoj_j_id);
-                            turnus.pridajDruhuZmenu(new Zmena(spoj_j));
+                            SpojOld spoj_j = pSpoje.get(spoj_j_id);
+                            turnus.pridajDruhuZmenu(new ZmenaOld(spoj_j));
                             break;
                         }
                     }
@@ -535,7 +584,7 @@ public class MinimalizaciaVodicov
             GRBLinExpr expr = new GRBLinExpr();
             for (int i = 0; i < spoje.size() - 1; i++)
             {
-                GRBVar x_ij = x.get(new Dvojica<>(spoje.get(i), spoje.get(i+1)));
+                GRBVar x_ij = x.get(new DvojicaOld<>(spoje.get(i), spoje.get(i+1)));
                 expr.addTerm(1, x_ij);
             }
             model.addConstr(expr, GRB.LESS_EQUAL, spoje.size() - 2, "4_" + expr.getVar(0).get(GRB.StringAttr.VarName) + "_" + expr.getVar(expr.size()-1).get(GRB.StringAttr.VarName));
@@ -546,7 +595,28 @@ public class MinimalizaciaVodicov
         return pocetVodicov;
     }
 
-    public ArrayList<Turnus> getTurnusy() {
+    public ArrayList<TurnusOld> getTurnusy() {
         return turnusy;
+    }
+
+    public void vypisPremenne()
+    {
+        // ------
+        HashSet<String> printedVars = new HashSet<>();
+        GRBVar[] vars = model.getVars();
+
+        System.out.println("Nenulové rozhodovací proměnné:");
+        for (GRBVar var : vars) {
+            try {
+                double value = var.get(GRB.DoubleAttr.X);
+                if (value != 0 && !printedVars.contains(var.get(GRB.StringAttr.VarName))) {
+                    System.out.println(var.get(GRB.StringAttr.VarName) + " = " + value);
+                    printedVars.add(var.get(GRB.StringAttr.VarName));
+                }
+            } catch (GRBException e) {
+                // Handle exception
+                e.printStackTrace();
+            }
+        }
     }
 }

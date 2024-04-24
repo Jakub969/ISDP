@@ -1,7 +1,7 @@
 package main;
 
 import com.gurobi.gurobi.*;
-import data.Dvojica;
+import dataOld.DvojicaOld;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,10 +12,10 @@ import java.util.*;
 public class minBusov {
 
     public static void runModel1() throws GRBException {
-        Map<Dvojica<Integer, Integer>, Integer> distances = loadDistances("dist.txt");
+        Map<DvojicaOld<Integer, Integer>, Integer> distances = loadDistances("dist.txt");
         Map<Integer, int[]> trips = loadTrips("trips.txt");
 
-        Map<Dvojica<Integer, Integer>, GRBVar> x = new LinkedHashMap<>();
+        Map<DvojicaOld<Integer, Integer>, GRBVar> x = new LinkedHashMap<>();
         GRBModel model = createModel(trips, distances, x);
         model.optimize();
 
@@ -37,8 +37,8 @@ public class minBusov {
         }
     }
 
-    public static Map<Dvojica<Integer, Integer>, Integer> loadDistances(String fileName) {
-        Map<Dvojica<Integer, Integer>, Integer> distances = new LinkedHashMap<>();
+    public static Map<DvojicaOld<Integer, Integer>, Integer> loadDistances(String fileName) {
+        Map<DvojicaOld<Integer, Integer>, Integer> distances = new LinkedHashMap<>();
         try {
             String decodedWay = URLDecoder.decode(minBusov.class.getResource("/" + fileName).getPath(), StandardCharsets.UTF_8);
             File file = new File(decodedWay);
@@ -49,10 +49,10 @@ public class minBusov {
                 int u = Integer.parseInt(cols[0]);
                 int v = Integer.parseInt(cols[1]);
                 int c = Integer.parseInt(cols[2]);
-                distances.put(new Dvojica<>(u,v), c);
-                distances.put(new Dvojica<>(v,u), c);
-                distances.put(new Dvojica<>(u,u), 0);
-                distances.put(new Dvojica<>(v,v), 0);
+                distances.put(new DvojicaOld<>(u,v), c);
+                distances.put(new DvojicaOld<>(v,u), c);
+                distances.put(new DvojicaOld<>(u,u), 0);
+                distances.put(new DvojicaOld<>(v,v), 0);
             }
             scanner.close();
         } catch (FileNotFoundException e) {
@@ -120,7 +120,7 @@ public class minBusov {
 
         return totalMinutes;
     }
-    public static GRBModel createModel(Map<Integer, int[]> trips, Map<Dvojica<Integer, Integer>, Integer> distances, Map<Dvojica<Integer, Integer>, GRBVar> x) throws GRBException {
+    public static GRBModel createModel(Map<Integer, int[]> trips, Map<DvojicaOld<Integer, Integer>, Integer> distances, Map<DvojicaOld<Integer, Integer>, GRBVar> x) throws GRBException {
         // Create a new optimization model
         GRBEnv env = new GRBEnv();
         GRBModel model = new GRBModel(env);
@@ -134,11 +134,11 @@ public class minBusov {
                 int[] trip_j = trips.get(j);
                 int dep_stop_j = trip_j[3];
                 int dep_time_j = trip_j[4];
-                Integer dist = distances.get(new Dvojica<>(arr_stop_i, dep_stop_j)); // Assuming distance is stored accordingly
+                Integer dist = distances.get(new DvojicaOld<>(arr_stop_i, dep_stop_j)); // Assuming distance is stored accordingly
 
                 // Add binary decision variable x[i,j] if the constraint holds
                 if (arr_time_i + dist <= dep_time_j) {
-                    x.put(new Dvojica<>(i,j), model.addVar(0, 1, 0, GRB.BINARY, "x_" + i + "_" + j));
+                    x.put(new DvojicaOld<>(i,j), model.addVar(0, 1, 0, GRB.BINARY, "x_" + i + "_" + j));
                 }
             }
         }
@@ -157,7 +157,7 @@ public class minBusov {
         // Add constraints: each trip can be selected at most once as arrival
         for (int k : trips.keySet()) {      // pre j = 1..n
             GRBLinExpr expr = new GRBLinExpr();
-            for (Dvojica<Integer, Integer> key : x.keySet()) {         //prechádzam cez všetky x
+            for (DvojicaOld<Integer, Integer> key : x.keySet()) {         //prechádzam cez všetky x
                 int j = key.druha();
                 if (k == j) {
                     expr.addTerm(1, x.get(key));
@@ -169,7 +169,7 @@ public class minBusov {
         // Add constraints: each trip can be selected at most once as departure
         for (int k : trips.keySet()) {          // pre i = 1..n
             GRBLinExpr expr = new GRBLinExpr();
-            for (Dvojica<Integer, Integer> key : x.keySet()) {
+            for (DvojicaOld<Integer, Integer> key : x.keySet()) {
                 int i = key.prva();
                 if (k == i) {
                     expr.addTerm(1, x.get(key));
@@ -183,7 +183,7 @@ public class minBusov {
         // Return the model
         return model;
     }
-    public static void printTurnusy(Map<Integer, int[]> trips, Map<Dvojica<Integer, Integer>, Integer> distances, List<Integer> heads) {
+    public static void printTurnusy(Map<Integer, int[]> trips, Map<DvojicaOld<Integer, Integer>, Integer> distances, List<Integer> heads) {
         // Výpis hlavičky tabulky
         System.out.println("Tur\tZac\tKon\tPrist\tOdst\tPrej");
 
@@ -194,7 +194,7 @@ public class minBusov {
         // Pro každý hlavní turnus
         for (int head : heads) {
             // Výpočet příjezdu na první zastávku
-            int pristav = distances.get(new Dvojica<>(59, trips.get(head)[3]));
+            int pristav = distances.get(new DvojicaOld<>(59, trips.get(head)[3]));
             int zaciatok = trips.get(head)[4] - pristav;
 
             // Najdi poslední spoj v turnusu
@@ -204,7 +204,7 @@ public class minBusov {
             }
 
             // Výpočet odjezdu z poslední zastávky
-            int odstav = distances.get(new Dvojica<>(59, trips.get(tail)[5]));
+            int odstav = distances.get(new DvojicaOld<>(59, trips.get(tail)[5]));
             int koniec = trips.get(tail)[6] + odstav;
 
             // Výpočet délky přejezdu mezi jednotlivými zastávkami spojov
@@ -214,7 +214,7 @@ public class minBusov {
                 int u = trips.get(i)[5];
                 i = trips.get(i)[8];
                 int v = trips.get(i)[3];
-                prejazd += distances.get(new Dvojica<>(u, v));
+                prejazd += distances.get(new DvojicaOld<>(u, v));
             }
 
             // Výpis informací o turnusu
@@ -241,7 +241,7 @@ public class minBusov {
         // Tisk informací o spoji
         System.out.println(t[1] + "\t" + t[2] + "\t" + t[3] + "\t" + strTime(t[4]) + "\t" + t[5] + "\t" + strTime(t[6]));
     }
-    public static List<Integer> getResult(Map<Integer, int[]> trips, Map<Dvojica<Integer, Integer>, Integer> distances, GRBModel m, Map<Dvojica<Integer, Integer>, GRBVar> x) {
+    public static List<Integer> getResult(Map<Integer, int[]> trips, Map<DvojicaOld<Integer, Integer>, Integer> distances, GRBModel m, Map<DvojicaOld<Integer, Integer>, GRBVar> x) {
         // Reset previous and successor trip IDs for all trips
         for (int i : trips.keySet()) {
             trips.get(i)[7] = -1;  // Previous trip ID
@@ -249,7 +249,7 @@ public class minBusov {
         }
 
         // Determine previous and successor trip IDs for selected pairs
-        for (Dvojica<Integer, Integer> x_i : x.keySet()) {
+        for (DvojicaOld<Integer, Integer> x_i : x.keySet()) {
             int i = x_i.prva();  // Obsahuje "13"
             int j = x_i.druha(); // Obsahuje "56"
 
@@ -313,7 +313,7 @@ public class minBusov {
 
             // ------------------------------------------------------------------------------------------------
             // 4. Set objective: maximize x + y + 2z
-            // We build our objective by prva constructing an empty linear expression and adding three terms to it.
+            // We build our objective by prvyPrvok constructing an empty linear expression and adding three terms to it.
             // AddTerm() - Add a single term into a linear expression.
             // [1: coeff: Coefficient for new term.
             //  2: var: Variable for new term.]

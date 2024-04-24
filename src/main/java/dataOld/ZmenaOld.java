@@ -1,20 +1,20 @@
-package data;
+package dataOld;
 
-import mvp.Model;
+import mvpOld.ModelOld;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-public class Zmena
+public class ZmenaOld
 {
-    private final Spoj prvySpoj;
-    private final Spoj poslednySpoj;
-    public Zmena(Spoj pPrvySpoj)
+    private final SpojOld prvySpoj;
+    private final SpojOld poslednySpoj;
+    public ZmenaOld(SpojOld pPrvySpoj)
     {
         this.prvySpoj = pPrvySpoj;
 
-        Spoj spoj = this.prvySpoj;
+        SpojOld spoj = this.prvySpoj;
         while(spoj.getNasledujuci() != null)
         {
             spoj = spoj.getNasledujuci();
@@ -22,23 +22,23 @@ public class Zmena
         this.poslednySpoj = spoj;
     }
 
-    public Spoj getPoslednySpoj()
+    public SpojOld getPoslednySpoj()
     {
         return this.poslednySpoj;
     }
 
-    public String[] vypis(LinkedHashMap<Dvojica<Integer, Integer>, Usek> pUseky)
+    public String[] vypis(LinkedHashMap<DvojicaOld<Integer, Integer>, UsekOld> pUseky)
     {
-        int pristavenie = pUseky.get(new Dvojica<>(Model.DEPO, this.prvySpoj.getMiestoOdchodu().getID())).getCasPrejazdu();
-        int odstavenie = pUseky.get(new Dvojica<>(this.poslednySpoj.getMiestoPrichodu().getID(), Model.DEPO)).getCasPrejazdu();
+        int pristavenie = pUseky.get(new DvojicaOld<>(ModelOld.DEPO, this.prvySpoj.getMiestoOdchoduID())).getCasPrejazdu();
+        int odstavenie = pUseky.get(new DvojicaOld<>(this.poslednySpoj.getMiestoPrichoduID(), ModelOld.DEPO)).getCasPrejazdu();
 
         int prazdnePrejazdy = 0;
-        Spoj spoj = this.prvySpoj;
+        SpojOld spoj = this.prvySpoj;
         while(spoj.getNasledujuci() != null)
         {
             int mpr_i = spoj.getMiestoPrichoduID();
             int mod_j = spoj.getNasledujuci().getMiestoOdchoduID();
-            prazdnePrejazdy += pUseky.get(new Dvojica<>(mpr_i, mod_j)).getCasPrejazdu();
+            prazdnePrejazdy += pUseky.get(new DvojicaOld<>(mpr_i, mod_j)).getCasPrejazdu();
             spoj = spoj.getNasledujuci();
         }
 
@@ -53,11 +53,11 @@ public class Zmena
         return udajeZmena;
     }
 
-    public String[][] vypisSpoje(LinkedHashMap<Dvojica<Integer, Integer>, Usek> useky)
+    public String[][] vypisSpoje(LinkedHashMap<DvojicaOld<Integer, Integer>, UsekOld> useky)
     {
         ArrayList<String[]> udajeZmena = new ArrayList<>();
 
-        Spoj spoj = this.prvySpoj;
+        SpojOld spoj = this.prvySpoj;
         while(spoj != null)
         {
             udajeZmena.add(spoj.vypis(useky));
@@ -67,33 +67,33 @@ public class Zmena
         return udajeZmena.toArray(new String[udajeZmena.size()][]);
     }
 
-    public ArrayList<ArrayList<Integer>> porusujeBP(int tur, LinkedHashMap<Dvojica<Integer, Integer>, Usek> useky,
-                               LinkedHashMap<Dvojica<Integer, Integer>, Integer> DT,
-                               LinkedHashMap<Dvojica<Integer, Integer>, Integer> T)
+    public ArrayList<ArrayList<Integer>> porusujeBP(int tur, LinkedHashMap<DvojicaOld<Integer, Integer>, UsekOld> useky,
+                               LinkedHashMap<DvojicaOld<Integer, Integer>, Integer> DT,
+                               LinkedHashMap<DvojicaOld<Integer, Integer>, Integer> T)
     {
         //vytvorenie všetkých nepretržitých jázd
-        ArrayList<Dvojica<Integer, Integer>> jazdy = new ArrayList<>();
-        int z = this.prvySpoj.getCasOdchoduMinuty() - useky.get(new Dvojica<>(Model.DEPO, this.prvySpoj.getMiestoOdchodu().getID())).getCasPrejazdu();
-        Spoj spoj = this.prvySpoj;
+        ArrayList<DvojicaOld<Integer, Integer>> jazdy = new ArrayList<>();
+        int z = this.prvySpoj.getCasOdchoduMinuty() - useky.get(new DvojicaOld<>(ModelOld.DEPO, this.prvySpoj.getMiestoOdchoduID())).getCasPrejazdu();
+        SpojOld spoj = this.prvySpoj;
         int k;
         while (spoj != poslednySpoj)
         {
-            Dvojica<Integer, Integer> prechod = new Dvojica<>(spoj.getID(), spoj.getNasledujuci().getID());
+            DvojicaOld<Integer, Integer> prechod = new DvojicaOld<>(spoj.getID(), spoj.getNasledujuci().getID());
             k = spoj.getCasPrichoduMinuty() + DT.get(prechod);
             int p = T.get(prechod) - DT.get(prechod);
             if(p >= 10)
             {
-                jazdy.add(new Dvojica<>(z, k));
+                jazdy.add(new DvojicaOld<>(z, k));
                 z = spoj.getNasledujuci().getCasOdchoduMinuty();
             }
             spoj = spoj.getNasledujuci();
         }
 
-        k = this.poslednySpoj.getCasPrichoduMinuty() + useky.get(new Dvojica<>(this.poslednySpoj.getMiestoPrichodu().getID(), Model.DEPO)).getCasPrejazdu();
-        jazdy.add(new Dvojica<>(z, k));
+        k = this.poslednySpoj.getCasPrichoduMinuty() + useky.get(new DvojicaOld<>(this.poslednySpoj.getMiestoPrichoduID(), ModelOld.DEPO)).getCasPrejazdu();
+        jazdy.add(new DvojicaOld<>(z, k));
 
         ArrayList<ArrayList<Integer>> porusenia = new ArrayList<>();
-        for (Dvojica<Integer, Integer> jazda: jazdy)
+        for (DvojicaOld<Integer, Integer> jazda: jazdy)
         {
             int zac = jazda.prva();
             int kon = zac + 270;
@@ -120,11 +120,11 @@ public class Zmena
         return porusenia;
     }
 
-    private ArrayList<Integer> spocitajBPPrestavku(int tur, ArrayList<Dvojica<Integer, Integer>> jazdy,
+    private ArrayList<Integer> spocitajBPPrestavku(int tur, ArrayList<DvojicaOld<Integer, Integer>> jazdy,
                                   int zacIntervalu, int konIntervalu)
     {
-/*        int zac = jazdy.get(0).prva();
-        int kon = jazdy.get(jazdy.size() - 1).druha();
+/*        int zac = jazdy.get(0).prvyPrvok();
+        int kon = jazdy.get(jazdy.size() - 1).druhyPrvok();
         if(zacIntervalu < zac || konIntervalu > kon)
             return null;*/
 
@@ -132,16 +132,14 @@ public class Zmena
         int kon = jazdy.get(jazdy.size() - 1).druha();
         int skutocneTrvanieIntervalu = Math.min(kon, konIntervalu) - Math.max(zac, zacIntervalu);
 
-        if(zacIntervalu == 302)
-            System.out.println();
         int bp = 0;
         for (int i = 0; i < jazdy.size(); i++)
         {
-            Dvojica<Integer, Integer> jazda = jazdy.get(i);
+            DvojicaOld<Integer, Integer> jazda = jazdy.get(i);
             int zacJazdy = jazda.prva();
             if(i > 0)
             {
-                Dvojica<Integer, Integer> predchadzajucaJazda = jazdy.get(i - 1);
+                DvojicaOld<Integer, Integer> predchadzajucaJazda = jazdy.get(i - 1);
                 int konPredchJazdy = predchadzajucaJazda.druha();
                 if(!(zacJazdy < zacIntervalu || konPredchJazdy > konIntervalu)){
 
@@ -152,6 +150,7 @@ public class Zmena
                 }
             }
         }
+
         if(skutocneTrvanieIntervalu - bp > 240 && bp < 30)
         {
             ArrayList<Integer> spojeID = new ArrayList<>();
@@ -159,7 +158,7 @@ public class Zmena
                     LocalTime.ofSecondOfDay(zacIntervalu * 60L).toString().substring(0, 5) +
                     " do " + LocalTime.ofSecondOfDay((konIntervalu * 60L) % 86400).toString().substring(0, 5) +
                     ", súčet prestávok = " + bp + "!");
-            Spoj spoj = this.prvySpoj;
+            SpojOld spoj = this.prvySpoj;
             while(spoj != null)
             {
                 if(!(spoj.getCasOdchoduMinuty() >= konIntervalu
@@ -174,23 +173,21 @@ public class Zmena
         return null;
     }
 
-    private ArrayList<Integer> spocitajJOPrestavku(int tur, ArrayList<Dvojica<Integer, Integer>> jazdy,
+    private ArrayList<Integer> spocitajJOPrestavku(int tur, ArrayList<DvojicaOld<Integer, Integer>> jazdy,
                                     int zacIntervalu, int konIntervalu)
     {
         int zac = jazdy.get(0).prva();
         int kon = jazdy.get(jazdy.size() - 1).druha();
         int skutocneTrvanieIntervalu = Math.min(kon, konIntervalu) - Math.max(zac, zacIntervalu);
-        if(skutocneTrvanieIntervalu < 360)
-            return null;
 
         int jo = 0;
         for (int i = 0; i < jazdy.size(); i++)
         {
-            Dvojica<Integer, Integer> jazda = jazdy.get(i);
+            DvojicaOld<Integer, Integer> jazda = jazdy.get(i);
             int zacJazdy = jazda.prva();
             if(i > 0)
             {
-                Dvojica<Integer, Integer> predchadzajucaJazda = jazdy.get(i - 1);
+                DvojicaOld<Integer, Integer> predchadzajucaJazda = jazdy.get(i - 1);
                 int konPredchJazdy = predchadzajucaJazda.druha();
                 if(!(zacJazdy < zacIntervalu || konPredchJazdy > konIntervalu)){
 
@@ -202,14 +199,14 @@ public class Zmena
             }
         }
 
-        if(jo < 30)
+        if(skutocneTrvanieIntervalu - jo > 360 && jo < 30)
         {
             ArrayList<Integer> spojeID = new ArrayList<>();
             System.out.println("Porusenie JO v turnuse " + tur + " v case od " +
                     LocalTime.ofSecondOfDay(zacIntervalu * 60L).toString().substring(0, 5) +
                     " do " + LocalTime.ofSecondOfDay((konIntervalu * 60L) % 86400).toString().substring(0, 5) +
                     ", súčet prestávok = " + jo + "!");
-            Spoj spoj = this.prvySpoj;
+            SpojOld spoj = this.prvySpoj;
             while(spoj != null)
             {
                 if(!(spoj.getCasOdchoduMinuty() >= konIntervalu
