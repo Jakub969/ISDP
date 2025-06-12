@@ -110,7 +110,11 @@ public class ViewMaxObsluzenychSpojov extends ViewMaxObsadenosti {
         //button výpočet modelu
         buttonVypocitajModel.addActionListener(evt ->
         {
-            this.vypocitajModel(presenter);
+            try {
+                this.vypocitajModel(presenter);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         });
 
         //linky
@@ -140,8 +144,7 @@ public class ViewMaxObsluzenychSpojov extends ViewMaxObsadenosti {
 
     //vypocet modelu
     @Override
-    protected void vypocitajModel(Presenter presenter)
-    {
+    protected void vypocitajModel(Presenter presenter) throws Exception {
         int pocetBusov;
         int pocetVodicov;
         double h;

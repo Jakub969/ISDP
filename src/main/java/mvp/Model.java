@@ -6,6 +6,8 @@ import optimalizacia.ModelMaxObsadenosti;
 import optimalizacia.ModelMaxObsluzenychSpojov;
 import optimalizacia.ModelMinBusov;
 import optimalizacia.ModelMinVodicov;
+import udaje.Turnus;
+import java.util.List;
 import udaje.*;
 import subory.NacitavacUdajov;
 
@@ -34,6 +36,8 @@ public class Model {
     private LinkedHashMap<Integer, Linka> linky;
     private LinkedHashMap<Dvojica<Integer, Integer>, Integer> DT;
     private LinkedHashMap<Dvojica<Integer, Integer>, Integer> T;
+    private List<Turnus> aktualneTurnusy;
+    private String poslednyTypOptimalizacie;
 
     private GRBEnv env;
 
@@ -253,6 +257,34 @@ public class Model {
         return this.linky;
     }
 
+    /**
+     * Získa zoznam všetkých turnusov z poslednej optimalizácie
+     * @return zoznam turnusov alebo null ak nebola vykonaná žiadna optimalizácia
+     */
+    public List<Turnus> getVsetkyTurnusy() {
+        return this.aktualneTurnusy;
+    }
+
+    /**
+     * Získa konkrétny turnus podľa indexu
+     * @param index index turnusu v zozname
+     * @return požadovaný turnus alebo null ak neexistuje
+     */
+    public Turnus getTurnus(int index) {
+        if (aktualneTurnusy == null || index < 0 || index >= aktualneTurnusy.size()) {
+            return null;
+        }
+        return aktualneTurnusy.get(index);
+    }
+
+    /**
+     * Získa typ poslednej optimalizácie
+     * @return reťazec popisujúci typ optimalizácie
+     */
+    public String getPoslednyTypOptimalizacie() {
+        return poslednyTypOptimalizacie;
+    }
+
     // 3. panel - Minimalizácia počtu autobusov
     public boolean jeProstrediePripravene()
     {
@@ -270,8 +302,9 @@ public class Model {
             if(!vyrieseny)
                 return "Model nemá riešenie!";
 
-            ArrayList<Turnus> turnusy = minBusov.getTurnusy();
-            for (Turnus turnus: turnusy)
+            this.aktualneTurnusy = minBusov.getTurnusy();
+            this.poslednyTypOptimalizacie = "Minimalizácia počtu autobusov";
+            for (Turnus turnus: aktualneTurnusy)
             {
                 pUdajeOturnusoch.add(turnus.vypisUdajeOturnuse());
                 pTurnusyUdaje.add(turnus.getPrvaZmena().vypisZmenu(this.DT));
@@ -300,8 +333,9 @@ public class Model {
             if(!vyrieseny)
                 return "Model nemá riešenie!";
 
-            ArrayList<Turnus> turnusy = minVodicov.getTurnusy();
-            for (Turnus turnus: turnusy)
+            this.aktualneTurnusy = minVodicov.getTurnusy();
+            this.poslednyTypOptimalizacie = "Minimalizácia počtu vodičov";
+            for (Turnus turnus: aktualneTurnusy)
             {
                 pUdajeOturnusoch.add(turnus.vypisUdajeOturnuse());
                 pTurnusyUdaje.add(turnus.getPrvaZmena().vypisZmenu(this.DT));
@@ -336,8 +370,9 @@ public class Model {
             if(!vyrieseny)
                 return "Model nemá riešenie!";
 
-            ArrayList<Turnus> turnusy = maxObsadenosti.getTurnusy();
-            for (Turnus turnus: turnusy)
+            this.aktualneTurnusy = maxObsadenosti.getTurnusy();
+            this.poslednyTypOptimalizacie = "Maximalizácia obsadenosti";
+            for (Turnus turnus: aktualneTurnusy)
             {
                 pUdajeOturnusoch.add(turnus.vypisUdajeOturnuse());
                 pTurnusyUdaje.add(turnus.getPrvaZmena().vypisZmenu(this.DT));
@@ -372,8 +407,9 @@ public class Model {
             if(!vyrieseny)
                 return "Model nemá riešenie!";
 
-            ArrayList<Turnus> turnusy = maxObsluzenychSpojov.getTurnusy();
-            for (Turnus turnus: turnusy)
+            this.aktualneTurnusy = maxObsluzenychSpojov.getTurnusy();
+            this.poslednyTypOptimalizacie = "Maximalizácia obslúžených spojov";
+            for (Turnus turnus: aktualneTurnusy)
             {
                 pUdajeOturnusoch.add(turnus.vypisUdajeOturnuse());
                 pTurnusyUdaje.add(turnus.getPrvaZmena().vypisZmenu(this.DT));
@@ -408,8 +444,9 @@ public class Model {
             if(!vyrieseny)
                 return "Model nemá riešenie!";
 
-            ArrayList<Turnus> turnusy = maxObsluzenychSpojov.getTurnusy();
-            for (Turnus turnus: turnusy)
+            this.aktualneTurnusy = maxObsluzenychSpojov.getTurnusy();
+            this.poslednyTypOptimalizacie = "Minimalizácia neobslúžených cestujúcich";
+            for (Turnus turnus: aktualneTurnusy)
             {
                 pUdajeOturnusoch.add(turnus.vypisUdajeOturnuse());
                 pTurnusyUdaje.add(turnus.getPrvaZmena().vypisZmenu(this.DT));

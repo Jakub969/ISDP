@@ -1,17 +1,26 @@
 package mvp;
 
+import mvp.view.TurnusViz;
 import udaje.Linka;
-
+import udaje.Turnus;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 public class Presenter {
     private final Model model;
+    private final String outputDir; // Pridaný adresár pre ukladanie vizualizácií
+
     public Presenter() {
         this.model = new Model();
+        this.outputDir = "turnus_vizualizacie"; // Predvolený výstupný adresár
     }
 
+    public Presenter(String outputDirectory) {
+        this.model = new Model();
+        this.outputDir = outputDirectory;
+    }
     //1. panel - Vstupné údaje
     public void ziskajKonstanty(String[] konstanty)
     {
@@ -53,10 +62,24 @@ public class Presenter {
         return this.model.getLinky();
     }
 
+    // Pomocná metóda pre vykreslenie turnusov
+    private void vykresliTurnusy() throws Exception {
+        List<Turnus> turnusy = model.getVsetkyTurnusy();
+        if (turnusy != null) {
+            for (int i = 0; i < turnusy.size(); i++) {
+                Turnus t = turnusy.get(i);
+                String subor = outputDir + "/turnus_" + (i+1) + "_" +
+                        model.getPoslednyTypOptimalizacie().toLowerCase().replace(" ", "_") + ".png";
+                TurnusViz.renderTurnus(t, subor);
+            }
+        }
+    }
+
     //3. panel - Minimalizácia počtu autobusov
-    public String vykonajMinimalizaciuAutobusov(ArrayList<String[]> pUdajeOturnusoch, ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje)
-    {
-        return this.model.vykonajMinimalizaciuAutobusov(pUdajeOturnusoch, pTurnusyUdaje, pSpojeUdaje, null);
+    public String vykonajMinimalizaciuAutobusov(ArrayList<String[]> pUdajeOturnusoch, ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje) throws Exception {
+        String result = this.model.vykonajMinimalizaciuAutobusov(pUdajeOturnusoch, pTurnusyUdaje, pSpojeUdaje, null);
+        vykresliTurnusy();
+        return result;
     }
     public boolean jeProstrediePripravene()
     {
@@ -66,37 +89,41 @@ public class Presenter {
     //4. panel - Minimalizácia počtu vodičov
     public String vykonajMinimalizaciuVodicov(int pPocetBusov, double pGap, int pCasLimit, ArrayList<String[]> pUdajeOturnusoch,
                                               ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje,
-                                              ArrayList<String[]> pUdajeOiteraciach)
-    {
-        return this.model.vykonajMinimalizaciuVodicov(pPocetBusov, pGap, pCasLimit, pUdajeOturnusoch,
+                                              ArrayList<String[]> pUdajeOiteraciach) throws Exception {
+        String result = this.model.vykonajMinimalizaciuVodicov(pPocetBusov, pGap, pCasLimit, pUdajeOturnusoch,
                 pTurnusyUdaje, pSpojeUdaje, pUdajeOiteraciach);
+        vykresliTurnusy();
+        return result;
     }
 
     //5. panel - Maximalizácia obsadenosti
     public String vykonajMaximalizaciuObsadenosti(int pPocetBusov, int pPocetVodicov, double pGap, int pCasLimit,
                                                    ArrayList<String[]> pUdajeOturnusoch, ArrayList<String[]> pTurnusyUdaje,
-                                                   ArrayList<String[][]> pSpojeUdaje, ArrayList<String[]> pUdajeOiteraciach)
-    {
-        return this.model.vykonajMaximalizaciuObsadenosti(pPocetBusov, pPocetVodicov, pGap, pCasLimit,
+                                                   ArrayList<String[][]> pSpojeUdaje, ArrayList<String[]> pUdajeOiteraciach) throws Exception {
+        String result = this.model.vykonajMaximalizaciuObsadenosti(pPocetBusov, pPocetVodicov, pGap, pCasLimit,
                 pUdajeOturnusoch, pTurnusyUdaje, pSpojeUdaje, pUdajeOiteraciach);
+        vykresliTurnusy();
+        return result;
     }
 
     //6. panel - Maximalizácia obslúžených spojov
     public String vykonajMaximalizaciuObsluzenychSpojov(int pPocetBusov, int pPocetVodicov, double pH, double pGap, int pCasLimit,
                                                         ArrayList<String[]> pUdajeOturnusoch, ArrayList<String[]> pTurnusyUdaje,
-                                                        ArrayList<String[][]> pSpojeUdaje, ArrayList<String[]> pUdajeOiteraciach)
-    {
-        return this.model.vykonajMaximalizaciuObsluzenychSpojov(pPocetBusov, pPocetVodicov, pH, pGap, pCasLimit,
+                                                        ArrayList<String[][]> pSpojeUdaje, ArrayList<String[]> pUdajeOiteraciach) throws Exception {
+        String result = this.model.vykonajMaximalizaciuObsluzenychSpojov(pPocetBusov, pPocetVodicov, pH, pGap, pCasLimit,
                 pUdajeOturnusoch, pTurnusyUdaje, pSpojeUdaje, pUdajeOiteraciach);
+        vykresliTurnusy();
+        return result;
     }
 
     //7. panel - Maximalizácia obslúžených spojov
     public String vykonajMinimalizaciuNeobsluzenychCestujucich(int pPocetBusov, int pPocetVodicov, double pH, double pGap, int pCasLimit,
                                                         ArrayList<String[]> pUdajeOturnusoch, ArrayList<String[]> pTurnusyUdaje,
-                                                        ArrayList<String[][]> pSpojeUdaje, ArrayList<String[]> pUdajeOiteraciach)
-    {
-        return this.model.vykonajMinimalizaciuNeobsluzenychCestujucich(pPocetBusov, pPocetVodicov, pH, pGap, pCasLimit,
+                                                        ArrayList<String[][]> pSpojeUdaje, ArrayList<String[]> pUdajeOiteraciach) throws Exception {
+        String result = this.model.vykonajMinimalizaciuNeobsluzenychCestujucich(pPocetBusov, pPocetVodicov, pH, pGap, pCasLimit,
                 pUdajeOturnusoch, pTurnusyUdaje, pSpojeUdaje, pUdajeOiteraciach);
+        vykresliTurnusy();
+        return result;
     }
 
     // 8. panel - Experiment

@@ -85,7 +85,11 @@ public class ViewMinVodicov extends ViewOptimalizacia {
         //button výpočet modelu
         buttonVypocitajModel.addActionListener(evt ->
         {
-            this.vypocitajModel(presenter);
+            try {
+                this.vypocitajModel(presenter);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         });
     }
 
@@ -136,8 +140,7 @@ public class ViewMinVodicov extends ViewOptimalizacia {
 
     //vypocet modelu
     @Override
-    protected void vypocitajModel(Presenter presenter)
-    {
+    protected void vypocitajModel(Presenter presenter) throws Exception {
         int pocetBusov;
         int casLimit;
         double gap;

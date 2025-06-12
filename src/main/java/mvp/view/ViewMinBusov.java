@@ -43,7 +43,11 @@ public class ViewMinBusov extends ViewOptimalizacia {
         //button výpočet modelu
         buttonVypocitajModel.addActionListener(evt ->
         {
-            this.vypocitajModel(presenter);
+            try {
+                this.vypocitajModel(presenter);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         });
     }
 
@@ -81,8 +85,7 @@ public class ViewMinBusov extends ViewOptimalizacia {
     }
 
     @Override
-    protected void vypocitajModel(Presenter presenter)
-    {
+    protected void vypocitajModel(Presenter presenter) throws Exception {
         ArrayList<String[]> turnusyUdaje = new ArrayList<>();
         ArrayList<String[][]> spojeUdaje = new ArrayList<>();
         ArrayList<String[]> udajeOturnusoch = new ArrayList<>();

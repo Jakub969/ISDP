@@ -203,4 +203,8 @@ public class Zmena {
         }
         return null;
     }
+
+    public Spoj getPrvySpoj() {
+        return prvySpoj;
+    }
 }

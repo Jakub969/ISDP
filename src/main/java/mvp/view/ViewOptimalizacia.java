@@ -125,7 +125,7 @@ public abstract class ViewOptimalizacia extends JPanel {
     }
 
     //vypocty
-    abstract protected void vypocitajModel(Presenter presenter);
+    abstract protected void vypocitajModel(Presenter presenter) throws Exception;
     protected void vycentrovatUdajeVtabulke(JTable table)
     {
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
