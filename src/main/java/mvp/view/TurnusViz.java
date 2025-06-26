@@ -8,11 +8,13 @@ import guru.nidi.graphviz.engine.*;
 import guru.nidi.graphviz.model.*;
 import static guru.nidi.graphviz.model.Factory.*;
 
+import udaje.Ride;
 import udaje.Turnus;
 import udaje.Zmena;
 import udaje.Spoj;
 
 import java.io.File;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 public class TurnusViz {
@@ -31,6 +33,31 @@ public class TurnusViz {
                 .width(1200)
                 .render(Format.PNG)
                 .toFile(new File(cesta + "/turnus_" + turnus.getID() + ".png"));
+    }
+
+    public static ArrayList<Ride> renderTurnus(Turnus turnus) {
+        return vykresliZmenuPreGUI(turnus.getPrvaZmena());
+    }
+
+    private static ArrayList<Ride> vykresliZmenuPreGUI(Zmena zmena) {
+        ArrayList<Ride> rides = new ArrayList<>();
+
+
+        Spoj spoj = zmena.getPrvySpoj();
+        Ride ride;
+        while (spoj != null) {
+            String label = "Spoj " + spoj.getID() + "\n" + cas(spoj.getCasOdchoduVMinutach()) + " → " + cas(spoj.getCasPrichoduVMinutach());
+
+            ride = new Ride(
+                    spoj.getCasOdchodu().format(DateTimeFormatter.ofPattern("HH:mm")),
+                    spoj.getCasPrichodu().format(DateTimeFormatter.ofPattern("HH:mm")),
+                    Integer.toString(spoj.getMiestoOdchodu()),
+                    Integer.toString(spoj.getMiestoPrichodu()),
+                    spoj.getObsluzenost());
+            rides.add(ride);
+            spoj = spoj.getNasledujuciSpoj();
+        }
+        return rides;
     }
 
     private static LinkSource vykresliZmenu(Zmena zmena, String color) {

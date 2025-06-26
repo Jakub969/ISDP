@@ -2,11 +2,10 @@ package mvp;
 
 import mvp.view.TurnusViz;
 import udaje.Linka;
+import udaje.Ride;
 import udaje.Turnus;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
 public class Presenter {
     private final Model model;
@@ -65,20 +64,37 @@ public class Presenter {
     // Pomocná metóda pre vykreslenie turnusov
     private void vykresliTurnusy() throws Exception {
         List<Turnus> turnusy = model.getVsetkyTurnusy();
+
+
         if (turnusy != null) {
             for (int i = 0; i < turnusy.size(); i++) {
                 Turnus t = turnusy.get(i);
                 String subor = outputDir + "/turnus_" + (i+1) + "_" +
                         model.getPoslednyTypOptimalizacie().toLowerCase().replace(" ", "_") + ".png";
                 TurnusViz.renderTurnus(t, subor);
+
             }
         }
     }
+
+    private Map<String, List<Ride>> vykresliTurnusyPreGUI() {
+        List<Turnus> turnusy = model.getVsetkyTurnusy();
+        Map<String, List<Ride>> turnusMap = new HashMap<>();
+        if (turnusy != null) {
+            for (int i = 0; i < turnusy.size(); i++) {
+                Turnus t = turnusy.get(i);
+                turnusMap.put("Linka " + t.getID(), TurnusViz.renderTurnus(t));
+            }
+        }
+        return turnusMap;
+    }
+
 
     //3. panel - Minimalizácia počtu autobusov
     public String vykonajMinimalizaciuAutobusov(ArrayList<String[]> pUdajeOturnusoch, ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje) throws Exception {
         String result = this.model.vykonajMinimalizaciuAutobusov(pUdajeOturnusoch, pTurnusyUdaje, pSpojeUdaje, null);
         vykresliTurnusy();
+        vykresliTurnusyPreGUI();
         return result;
     }
     public boolean jeProstrediePripravene()
@@ -93,6 +109,7 @@ public class Presenter {
         String result = this.model.vykonajMinimalizaciuVodicov(pPocetBusov, pGap, pCasLimit, pUdajeOturnusoch,
                 pTurnusyUdaje, pSpojeUdaje, pUdajeOiteraciach);
         vykresliTurnusy();
+        vykresliTurnusyPreGUI();
         return result;
     }
 
@@ -103,6 +120,7 @@ public class Presenter {
         String result = this.model.vykonajMaximalizaciuObsadenosti(pPocetBusov, pPocetVodicov, pGap, pCasLimit,
                 pUdajeOturnusoch, pTurnusyUdaje, pSpojeUdaje, pUdajeOiteraciach);
         vykresliTurnusy();
+        vykresliTurnusyPreGUI();
         return result;
     }
 
@@ -113,6 +131,7 @@ public class Presenter {
         String result = this.model.vykonajMaximalizaciuObsluzenychSpojov(pPocetBusov, pPocetVodicov, pH, pGap, pCasLimit,
                 pUdajeOturnusoch, pTurnusyUdaje, pSpojeUdaje, pUdajeOiteraciach);
         vykresliTurnusy();
+        vykresliTurnusyPreGUI();
         return result;
     }
 
@@ -123,6 +142,7 @@ public class Presenter {
         String result = this.model.vykonajMinimalizaciuNeobsluzenychCestujucich(pPocetBusov, pPocetVodicov, pH, pGap, pCasLimit,
                 pUdajeOturnusoch, pTurnusyUdaje, pSpojeUdaje, pUdajeOiteraciach);
         vykresliTurnusy();
+        vykresliTurnusyPreGUI();
         return result;
     }
 
