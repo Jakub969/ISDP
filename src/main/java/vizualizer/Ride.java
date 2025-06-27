@@ -1,11 +1,11 @@
-package udaje;
+package vizualizer;
 
 public class Ride {
     String start;
     String end;
     String startName;
     String endName;
-    boolean deadheadTrip;
+    boolean deadheadTrip; // true = zastavil, false = prešiel
 
     public Ride(String start, String end, String startName, String endName, boolean deadheadTrip) {
         this.start = start;

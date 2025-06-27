@@ -8,7 +8,7 @@ import guru.nidi.graphviz.engine.*;
 import guru.nidi.graphviz.model.*;
 import static guru.nidi.graphviz.model.Factory.*;
 
-import udaje.Ride;
+import vizualizer.Ride;
 import udaje.Turnus;
 import udaje.Zmena;
 import udaje.Spoj;
@@ -53,7 +53,7 @@ public class TurnusViz {
                     spoj.getCasPrichodu().format(DateTimeFormatter.ofPattern("HH:mm")),
                     Integer.toString(spoj.getMiestoOdchodu()),
                     Integer.toString(spoj.getMiestoPrichodu()),
-                    spoj.getObsluzenost());
+                    !spoj.getObsluzenost());
             rides.add(ride);
             spoj = spoj.getNasledujuciSpoj();
         }
