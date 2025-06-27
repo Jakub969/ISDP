@@ -126,8 +126,8 @@ public class Presenter {
     //3. panel - Minimalizácia počtu autobusov
     public String vykonajMinimalizaciuAutobusov(ArrayList<String[]> pUdajeOturnusoch, ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje) throws Exception {
         String result = this.model.vykonajMinimalizaciuAutobusov(pUdajeOturnusoch, pTurnusyUdaje, pSpojeUdaje, null);
-        vykresliTurnusy();
-        vykresliTurnusyPreGUI();
+//        vykresliTurnusy();
+        vykresliOkno(vykresliTurnusyPreGUI());
         return result;
     }
     public boolean jeProstrediePripravene()
@@ -141,9 +141,7 @@ public class Presenter {
                                               ArrayList<String[]> pUdajeOiteraciach) throws Exception {
         String result = this.model.vykonajMinimalizaciuVodicov(pPocetBusov, pGap, pCasLimit, pUdajeOturnusoch,
                 pTurnusyUdaje, pSpojeUdaje, pUdajeOiteraciach);
-        vykresliTurnusy();
-        vykresliTurnusyPreGUI();
-        BusSchedulePanel busSchedulePanel = new BusSchedulePanel(vykresliTurnusyPreGUI());
+//        vykresliTurnusy();
         vykresliOkno(vykresliTurnusyPreGUI());
         return result;
     }
@@ -154,8 +152,8 @@ public class Presenter {
                                                    ArrayList<String[][]> pSpojeUdaje, ArrayList<String[]> pUdajeOiteraciach) throws Exception {
         String result = this.model.vykonajMaximalizaciuObsadenosti(pPocetBusov, pPocetVodicov, pGap, pCasLimit,
                 pUdajeOturnusoch, pTurnusyUdaje, pSpojeUdaje, pUdajeOiteraciach);
-        vykresliTurnusy();
-        vykresliTurnusyPreGUI();
+//        vykresliTurnusy();
+        vykresliOkno(vykresliTurnusyPreGUI());
         return result;
     }
 
@@ -165,8 +163,8 @@ public class Presenter {
                                                         ArrayList<String[][]> pSpojeUdaje, ArrayList<String[]> pUdajeOiteraciach) throws Exception {
         String result = this.model.vykonajMaximalizaciuObsluzenychSpojov(pPocetBusov, pPocetVodicov, pH, pGap, pCasLimit,
                 pUdajeOturnusoch, pTurnusyUdaje, pSpojeUdaje, pUdajeOiteraciach);
-        vykresliTurnusy();
-        vykresliTurnusyPreGUI();
+//        vykresliTurnusy();
+        vykresliOkno(vykresliTurnusyPreGUI());
         return result;
     }
 
@@ -177,7 +175,7 @@ public class Presenter {
         String result = this.model.vykonajMinimalizaciuNeobsluzenychCestujucich(pPocetBusov, pPocetVodicov, pH, pGap, pCasLimit,
                 pUdajeOturnusoch, pTurnusyUdaje, pSpojeUdaje, pUdajeOiteraciach);
         //vykresliTurnusy();
-        vykresliTurnusyPreGUI();
+        vykresliOkno(vykresliTurnusyPreGUI());
         return result;
     }
 

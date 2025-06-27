@@ -53,7 +53,7 @@ public class TurnusViz {
                     spoj.getCasPrichodu().format(DateTimeFormatter.ofPattern("HH:mm")),
                     Integer.toString(spoj.getMiestoOdchodu()),
                     Integer.toString(spoj.getMiestoPrichodu()),
-                    spoj.getObsluzenost());
+                    !spoj.getObsluzenost());
             rides.add(ride);
             spoj = spoj.getNasledujuciSpoj();
         }
