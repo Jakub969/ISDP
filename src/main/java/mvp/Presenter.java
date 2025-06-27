@@ -5,11 +5,25 @@ import udaje.Linka;
 import udaje.Ride;
 import udaje.Turnus;
 import java.io.File;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 
 public class Presenter {
     private final Model model;
     private final String outputDir; // Pridaný adresár pre ukladanie vizualizácií
+
+    public class TurnusDTO {
+        private LocalTime startDate;
+        private LocalTime endDate;
+        private Map<String, List<Ride>> turnusMap;
+
+        public TurnusDTO(LocalTime startDate, LocalTime endDate, Map<String, List<Ride>> turnusMap) {
+            this.startDate = startDate;
+            this.endDate = endDate;
+            this.turnusMap = turnusMap;
+        }
+    }
 
     public Presenter() {
         this.model = new Model();
@@ -77,16 +91,30 @@ public class Presenter {
         }
     }
 
-    private Map<String, List<Ride>> vykresliTurnusyPreGUI() {
+    private TurnusDTO vykresliTurnusyPreGUI() {
         List<Turnus> turnusy = model.getVsetkyTurnusy();
         Map<String, List<Ride>> turnusMap = new HashMap<>();
+        LocalTime minDate = LocalTime.MAX;
+        LocalTime maxDate = LocalTime.MIN;
         if (turnusy != null) {
             for (int i = 0; i < turnusy.size(); i++) {
                 Turnus t = turnusy.get(i);
                 turnusMap.put("Linka " + t.getID(), TurnusViz.renderTurnus(t));
+
+                var dateMin = t.getPrvaZmena().getPrvySpoj().getCasOdchodu();
+                var dateMax = t.getPrvaZmena().getPoslednySpoj().getCasPrichodu();
+                if (dateMin.isBefore(minDate)) {
+                    minDate = dateMin;
+                }
+                if (dateMax.isAfter(maxDate)) {
+                    maxDate = dateMax;
+                }
             }
         }
-        return turnusMap;
+
+        return new TurnusDTO(minDate.minusMinutes(minDate.getMinute() % 30),
+                maxDate.minusMinutes(maxDate.getMinute() % 30).plusMinutes(30),
+                turnusMap);
     }
 
 
