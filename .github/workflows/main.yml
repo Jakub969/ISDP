@@ -2,9 +2,9 @@ name: Java Maven Build & Run
 
 on:
   push:
-    branches: [ pipeline ]
+    branches: [ master ]
   pull_request:
-    branches: [ pipeline ]
+    branches: [ master ]
 
 jobs:
   build:
