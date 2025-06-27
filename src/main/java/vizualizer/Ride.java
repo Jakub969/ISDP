@@ -1,6 +1,6 @@
 package vizualizer;
 
-class Ride {
+public class Ride {
     String start;
     String end;
     String startName;

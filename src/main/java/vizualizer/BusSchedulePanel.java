@@ -1,37 +1,33 @@
 package vizualizer;
 
+import mvp.Presenter;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.SimpleDateFormat;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.List;
 
 public class BusSchedulePanel extends JPanel {
 
-    private final Map<String, List<Ride>> busLines = new LinkedHashMap<>();
+    private Map<String, List<Ride>> busLines = new LinkedHashMap<>();
     private final List<SegmentInfo> clickableSegments = new ArrayList<>();
+    private LocalTime min;
+    private LocalTime max;
 
 
-    public BusSchedulePanel() {
-        busLines.put("Autobus 1", Arrays.asList(
-                new Ride("04:00", "04:14", "Zastavka 1", "Zastavka 2", true),
-                new Ride("04:15", "04:30", "Zastavka 2", "Zastavka 3", false), // nebol zastavka, len prejazd
-                new Ride("04:50", "04:55", "Zastavka 3", "Zastavka 4", true)
-        ));
+    public BusSchedulePanel(Presenter.TurnusDTO turnusDTO) {
 
-        busLines.put("Autobus 2", Arrays.asList(
-                new Ride("14:00", "14:05", "Zastavka 1", "Zastavka 2", true),
-                new Ride("14:25", "14:30", "Zastavka 2", "Zastavka 3", false), // nebol zastavka, len prejazd
-                new Ride("14:50", "14:55", "Zastavka 3", "Zastavka 4", true)
-        ));
+        busLines = turnusDTO.turnusMap;
+        min = turnusDTO.startDate;
+        max = turnusDTO.endDate;
+        if (min.isAfter(max)) {
+            max.plusHours(24);
+        }
 
-        busLines.put("Autobus 3", Arrays.asList(
-                new Ride("04:00", "04:05", "Zastavka 1", "Zastavka 2", true),
-                new Ride("04:25", "04:30", "Zastavka 2", "Zastavka 3", false), // nebol zastavka, len prejazd
-                new Ride("04:50", "04:55", "Zastavka 3", "Zastavka 4", true)
-        ));
 
         addMouseListener(new MouseAdapter() {
             @Override
@@ -58,8 +54,8 @@ public class BusSchedulePanel extends JPanel {
         int lineSpacing = 80;
         int lineLength = 2300;
 
-        long timeStart = toMillis("04:00");
-        long timeEnd = toMillis("25:00");
+        long timeStart = toMillis(this.min.toString());
+        long timeEnd = toMillis(this.max.toString());
         long timeRange = timeEnd - timeStart;
 
         int busIndex = 0;
@@ -204,7 +200,7 @@ public class BusSchedulePanel extends JPanel {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1000, 600); // uprav veľkosť okna podľa potreby
 
-        BusSchedulePanel panel = new BusSchedulePanel();
+        BusSchedulePanel panel = new BusSchedulePanel(null);
         panel.setPreferredSize(new Dimension(2500, 1000)); // nastav dostatočnú veľkosť pre scroll
 
         JScrollPane scrollPane = new JScrollPane(panel,
@@ -214,5 +210,6 @@ public class BusSchedulePanel extends JPanel {
         frame.add(scrollPane);
         frame.setVisible(true);
     }
+
 
 }

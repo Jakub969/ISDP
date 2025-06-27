@@ -2,21 +2,26 @@ package mvp;
 
 import mvp.view.TurnusViz;
 import udaje.Linka;
-import udaje.Ride;
+import vizualizer.BusSchedulePanel;
+import vizualizer.Ride;
 import udaje.Turnus;
+
+import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.List;
 
 public class Presenter {
     private final Model model;
     private final String outputDir; // Pridaný adresár pre ukladanie vizualizácií
 
     public class TurnusDTO {
-        private LocalTime startDate;
-        private LocalTime endDate;
-        private Map<String, List<Ride>> turnusMap;
+        public LocalTime startDate;
+        public LocalTime endDate;
+        public Map<String, List<Ride>> turnusMap;
 
         public TurnusDTO(LocalTime startDate, LocalTime endDate, Map<String, List<Ride>> turnusMap) {
             this.startDate = startDate;
@@ -138,6 +143,8 @@ public class Presenter {
                 pTurnusyUdaje, pSpojeUdaje, pUdajeOiteraciach);
         vykresliTurnusy();
         vykresliTurnusyPreGUI();
+        BusSchedulePanel busSchedulePanel = new BusSchedulePanel(vykresliTurnusyPreGUI());
+        vykresliOkno(vykresliTurnusyPreGUI());
         return result;
     }
 
@@ -169,7 +176,7 @@ public class Presenter {
                                                         ArrayList<String[][]> pSpojeUdaje, ArrayList<String[]> pUdajeOiteraciach) throws Exception {
         String result = this.model.vykonajMinimalizaciuNeobsluzenychCestujucich(pPocetBusov, pPocetVodicov, pH, pGap, pCasLimit,
                 pUdajeOturnusoch, pTurnusyUdaje, pSpojeUdaje, pUdajeOiteraciach);
-        vykresliTurnusy();
+        //vykresliTurnusy();
         vykresliTurnusyPreGUI();
         return result;
     }
@@ -179,5 +186,21 @@ public class Presenter {
                                     int pPocetBusov, int pPocetVodicov, int pCasLimit, double pGap)
     {
         return this.model.vykonajExperiment(informacieObehu, pPocetBusov, pPocetVodicov, pCasLimit, pGap);
+    }
+
+    public void vykresliOkno(Presenter.TurnusDTO turnusDTO) {
+        JFrame frame = new JFrame("Vizualizácia trás autobusov");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(1000, 600); // uprav veľkosť okna podľa potreby
+
+        BusSchedulePanel panel = new BusSchedulePanel(turnusDTO);
+        panel.setPreferredSize(new Dimension(2500, 1000)); // nastav dostatočnú veľkosť pre scroll
+
+        JScrollPane scrollPane = new JScrollPane(panel,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+        frame.add(scrollPane);
+        frame.setVisible(true);
     }
 }
