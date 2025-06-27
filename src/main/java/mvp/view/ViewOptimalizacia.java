@@ -21,6 +21,8 @@ public abstract class ViewOptimalizacia extends JPanel {
     protected JScrollPane scrollPaneSpoje;
     protected JPanel panelSpoje;
 
+    protected JScrollPane scrollPaneGrafy;
+
     protected JButton buttonVypocitajModel;
     protected JPanel panelVypocetModelu;
 
@@ -41,6 +43,7 @@ public abstract class ViewOptimalizacia extends JPanel {
         inicializujInformacieOmodeli();
         inicializujTurnusy();
         inicializujSpoje();
+        inicializujGrafy();
         inicializujVypocetModelu(presenter);
 
         //celkovo
@@ -122,6 +125,31 @@ public abstract class ViewOptimalizacia extends JPanel {
         this.panelSpoje = new JPanel();
         scrollPaneSpoje.setVisible(false);
         scrollPaneSpoje.setViewportView(this.panelSpoje);
+    }
+    private void inicializujGrafy() {
+        //Turnusy
+        JPanel panelGrafy = new JPanel();
+        scrollPaneGrafy = new javax.swing.JScrollPane();
+        javax.swing.GroupLayout panelGrafyLayout = new javax.swing.GroupLayout(panelGrafy);
+        panelGrafy.setLayout(panelGrafyLayout);
+        panelGrafyLayout.setHorizontalGroup(
+                panelGrafyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(panelGrafyLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(scrollPaneGrafy, 900, 900, 900)
+                                .addContainerGap())
+        );
+        panelGrafyLayout.setVerticalGroup(
+                panelGrafyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(panelGrafyLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(scrollPaneGrafy, 537, 537, 537)
+                                .addContainerGap())
+        );
+
+        tabbedPane.addTab("Grafy", panelGrafy);
+
+        scrollPaneGrafy.setVisible(false);
     }
 
     //vypocty

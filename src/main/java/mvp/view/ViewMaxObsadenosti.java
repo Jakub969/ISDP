@@ -1,6 +1,14 @@
 package mvp.view;
 
 import mvp.Presenter;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.category.LineAndShapeRenderer;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.general.DefaultPieDataset;
 import udaje.Linka;
 
 import javax.swing.*;
@@ -294,5 +302,46 @@ public class ViewMaxObsadenosti extends ViewMinVodicov {
             }
             scrollPaneLinky.setViewportView(panelLinky);
         }
+        zobrazGrafy(udajeOTurnusoch, linky, udajeOiteraciach);
+    }
+
+    private void zobrazGrafy(ArrayList<String[]> udajeOTurnusoch, LinkedHashMap<Integer, Linka> linky, ArrayList<String[]> udajeOiteraciach) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+        // === 1. Koláčový graf - Turnusy ===
+        DefaultPieDataset pieDataset = new DefaultPieDataset();
+        int totalMin = 0;
+        int[] trvania = new int[udajeOTurnusoch.size()];
+        for (int i = 0; i < udajeOTurnusoch.size(); i++) {
+            int min = parseCasNaMinuty(udajeOTurnusoch.get(i)[2]);
+            trvania[i] = min;
+            totalMin += min;
+        }
+        for (int i = 0; i < trvania.length; i++) {
+            pieDataset.setValue("T" + (i + 1), trvania[i]);
+        }
+        JFreeChart pieChart = ChartFactory.createPieChart("Podiel trvania turnusov", pieDataset, true, true, false);
+        panel.add(new ChartPanel(pieChart));
+
+        // === 2. Bar graf - Obsadenosť liniek ===
+        DefaultCategoryDataset barDataset = new DefaultCategoryDataset();
+        for (Linka linka : linky.values()) {
+            barDataset.addValue(linka.getRealnaObsadenost(), "Obsadenosť", "L:" + linka.getID());
+        }
+        JFreeChart barChart = ChartFactory.createBarChart("Relatívna obsadenosť liniek", "Linka", "Obsadenosť", barDataset);
+        panel.add(new ChartPanel(barChart));
+
+        // Zobrazenie všetkých grafov
+        scrollPaneGrafy.setViewportView(panel);
+        scrollPaneGrafy.setVisible(true);
+    }
+
+    private int parseCasNaMinuty(String cas) {
+        // očakáva formát "hh:mm"
+        String[] parts = cas.split(":");
+        int hodiny = Integer.parseInt(parts[0]);
+        int minuty = Integer.parseInt(parts[1]);
+        return hodiny * 60 + minuty;
     }
 }

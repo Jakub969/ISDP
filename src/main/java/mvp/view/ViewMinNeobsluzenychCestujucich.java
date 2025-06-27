@@ -1,6 +1,12 @@
 package mvp.view;
 
 import mvp.Presenter;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.general.DefaultPieDataset;
 import udaje.Linka;
 
 import javax.swing.*;
@@ -312,5 +318,42 @@ public class ViewMinNeobsluzenychCestujucich extends ViewMaxObsadenosti {
             }
             scrollPaneLinky.setViewportView(panelLinky);
         }
+        vykresliGrafy(linky, udajeOiteraciach);
     }
+
+    private void vykresliGrafy(LinkedHashMap<Integer, Linka> linky, ArrayList<String[]> iteracie) {
+        JPanel panelGrafy = new JPanel();
+        panelGrafy.setLayout(new BoxLayout(panelGrafy, BoxLayout.Y_AXIS));
+
+        // 1. Bar chart – obslúžené spoje na linku
+        DefaultCategoryDataset datasetBar = new DefaultCategoryDataset();
+        int obsluzenychCelkovo = 0;
+        int neobsluzenychCelkovo = 0;
+        for (Linka linka : linky.values()) {
+            int obsluzene = linka.getPocetObsluzenychSpojov();
+            int vsetky = linka.getSpoje().size();
+            obsluzenychCelkovo += obsluzene;
+            neobsluzenychCelkovo += (vsetky - obsluzene);
+            datasetBar.addValue(obsluzene, "Obslúžené spoje", "Linka " + linka.getID());
+        }
+        JFreeChart barChart = ChartFactory.createBarChart(
+                "Počet obslúžených spojov na linku",
+                "Linka", "Počet spojov",
+                datasetBar, PlotOrientation.VERTICAL, true, true, false);
+        panelGrafy.add(new ChartPanel(barChart));
+
+        // 2. Pie chart – obslúžené vs. neobslúžené
+        DefaultPieDataset datasetPie = new DefaultPieDataset();
+        datasetPie.setValue("Obslúžené", obsluzenychCelkovo);
+        datasetPie.setValue("Neobslúžené", neobsluzenychCelkovo);
+        JFreeChart pieChart = ChartFactory.createPieChart(
+                "Podiel obslúžených vs. neobslúžených spojov",
+                datasetPie, true, true, false);
+        panelGrafy.add(new ChartPanel(pieChart));
+
+        // Zobrazenie všetkých grafov
+        scrollPaneGrafy.setViewportView(panelGrafy);
+        scrollPaneGrafy.setVisible(true);
+    }
+
 }
