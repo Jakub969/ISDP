@@ -25,3 +25,38 @@ Výsledkom je integrovaný softvérový nástroj, ktorý predstavuje most medzi 
 * **Intuitívne Grafické Zobrazenie Turnusov**: Umožňuje používateľom vizuálne analyzovať vytvorené turnusy, čo vedie k lepšiemu pochopeniu pridelených úloh a umožňuje rýchlu identifikáciu potenciálnych zlepšení.
 * **Prehľadné Štatistické Grafy**: Prezentuje kľúčové štatistiky a výsledky optimalizácie v ľahko čitateľných grafických formátoch, poskytujúc cenné informácie pre manažment a plánovanie.
 * **Robustné Overenie na Reálnych Dátach**: Všetky modely boli experimentálne overené pomocou rozsiahlych súborov reálnych dát z regionálnej autobusovej dopravy, čo zaručuje praktickú aplikovateľnosť a vysokú presnosť riešenia.
+
+## Inštalácia a Používanie
+
+Tento projekt je spravovaný pomocou Maven, čo uľahčuje správu závislostí a proces zostavovania.
+
+### Predpoklady
+
+Pred spustením projektu sa uistite, že máte nainštalované nasledujúce:
+
+* **Java Development Kit (JDK)**: Verzia 8 alebo vyššia.
+* **Apache Maven**: Pre správu projektu a zostavovanie.
+* **Gurobi Optimizer**: Pre riešenie optimalizačných modelov. Uistite sa, že máte správne nastavenú licenciu a systémové premenné pre Gurobi.
+
+### Klonovanie Repozitára
+
+Naklonujte si repozitár do lokálneho adresára pomocou nasledujúceho príkazu:
+
+```bash
+git clone [https://github.com/Jakub969/ISDP.git](https://github.com/Jakub969/ISDP.git)
+cd ISDP
+```
+V rámci IDE (IntelliJ IDEA, Eclipse atď.):
+Projekt môžete tiež importovať ako Maven projekt do vášho obľúbeného IDE a spustiť ho priamo z prostredia IDE.
+
+### Používanie Aplikácie
+Po spustení aplikácie budete môcť:
+
+* **Načítať vstupné dáta**: Obvykle zo súborov obsahujúcich informácie o linkách, spojoch, časoch a dostupnosti vodičov.
+* **Nastaviť optimalizačné parametre**: Vybrať si z dostupných optimalizačných kritérií (napr. minimalizácia vodičov, maximalizácia obslúžených spojov).
+* **Spustiť výpočet turnusov**: Aplikácia použije Gurobi Optimizer na nájdenie optimálneho riešenia.
+* **Analyzovať výsledky**: Prezerať si generované turnusy prostredníctvom **grafického zobrazenia** a analyzovať kľúčové štatistiky pomocou **štatistických grafov**. Tieto vizualizácie vám pomôžu rýchlo pochopiť a vyhodnotiť efektivitu navrhnutých riešení.
+
+Pre detailnejšie informácie o funkčnosti a pokročilých nastaveniach sa obráťte na dokumentáciu projektu.
+
+
