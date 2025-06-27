@@ -59,7 +59,7 @@ public class BusSchedulePanel extends JPanel {
         int lineLength = 2300;
 
         long timeStart = toMillis("04:00");
-        long timeEnd = toMillis("20:00");
+        long timeEnd = toMillis("25:00");
         long timeRange = timeEnd - timeStart;
 
         int busIndex = 0;
@@ -183,7 +183,7 @@ public class BusSchedulePanel extends JPanel {
             double ratio = (double) (t - timeStart) / timeRange;
             int x = marginLeft + (int) (ratio * lineLength);
             g2.drawString(formatTime(t), x - 15, marginTop - 15);
-            i += 15;
+            i += 30;
         }
     }
 
@@ -202,8 +202,17 @@ public class BusSchedulePanel extends JPanel {
     public static void main(String[] args) {
         JFrame frame = new JFrame("Vizualizácia trás autobusov");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(1900, 400);
-        frame.add(new BusSchedulePanel());
+        frame.setSize(1000, 600); // uprav veľkosť okna podľa potreby
+
+        BusSchedulePanel panel = new BusSchedulePanel();
+        panel.setPreferredSize(new Dimension(2500, 1000)); // nastav dostatočnú veľkosť pre scroll
+
+        JScrollPane scrollPane = new JScrollPane(panel,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+        frame.add(scrollPane);
         frame.setVisible(true);
     }
+
 }
