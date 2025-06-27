@@ -17,6 +17,8 @@ public class BusSchedulePanel extends JPanel {
     private final List<SegmentInfo> clickableSegments = new ArrayList<>();
     private LocalTime min;
     private LocalTime max;
+    private String maxTime;
+    private String minTime;
 
 
     public BusSchedulePanel(Presenter.TurnusDTO turnusDTO) {
@@ -24,8 +26,14 @@ public class BusSchedulePanel extends JPanel {
         busLines = turnusDTO.turnusMap;
         min = turnusDTO.startDate;
         max = turnusDTO.endDate;
+        minTime = min.toString();
+        maxTime = max.toString();
         if (min.isAfter(max)) {
-            max.plusHours(24);
+            int hours = max.getHour();
+            int minutes = max.getMinute();
+            hours += 24;
+            maxTime = hours + ":" + minutes;
+
         }
 
 
@@ -54,8 +62,8 @@ public class BusSchedulePanel extends JPanel {
         int lineSpacing = 80;
         int lineLength = 2300;
 
-        long timeStart = toMillis(this.min.toString());
-        long timeEnd = toMillis(this.max.toString());
+        long timeStart = toMillis(this.minTime);
+        long timeEnd = toMillis(this.maxTime);
         long timeRange = timeEnd - timeStart;
 
         int busIndex = 0;
