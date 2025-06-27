@@ -1,6 +1,13 @@
 package mvp.view;
 
 import mvp.Presenter;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PiePlot;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.general.DefaultPieDataset;
 
 import javax.swing.*;
 import javax.swing.table.JTableHeader;
@@ -248,5 +255,72 @@ public class ViewMinVodicov extends ViewOptimalizacia {
             panelSpoje.add(Box.createRigidArea(new Dimension(0, 10)));
         }
         scrollPaneSpoje.setViewportView(panelSpoje);
+        pridajGrafy();
     }
+
+    private void pridajGrafy() {
+        JPanel panelGrafy = new JPanel();
+        panelGrafy.setLayout(new BoxLayout(panelGrafy, BoxLayout.Y_AXIS));
+
+        panelGrafy.add(vytvorBarChartPanel("Počet zmien na turnus", vytvorDatasetZmenyNaTurnus()));
+        panelGrafy.add(vytvorBarChartPanel("Trvanie zmien vs. jazdné časy", vytvorDatasetTrvanie()));
+        panelGrafy.add(vytvorBarChartPanel("Počet spojov na zmenu", vytvorDatasetSpojeNaZmenu()));
+        panelGrafy.add(vytvorPieChartPanel("Podiel jazdy vs. nečinnosti", vytvorDatasetJazdaNecinnost()));
+
+        JScrollPane scrollPane = new JScrollPane(panelGrafy);
+        tabbedPane.addTab("Grafy", scrollPane);
+    }
+
+    private ChartPanel vytvorBarChartPanel(String title, DefaultCategoryDataset dataset) {
+        JFreeChart chart = ChartFactory.createBarChart(
+                title,
+                "ID",
+                "Minúty",
+                dataset,
+                PlotOrientation.VERTICAL,
+                true, true, false
+        );
+        return new ChartPanel(chart);
+    }
+
+    private ChartPanel vytvorPieChartPanel(String title, DefaultPieDataset dataset) {
+        JFreeChart chart = ChartFactory.createPieChart(title, dataset, true, true, false);
+        ((PiePlot) chart.getPlot()).setLabelFont(new Font("SansSerif", Font.PLAIN, 12));
+        return new ChartPanel(chart);
+    }
+
+    private DefaultCategoryDataset vytvorDatasetZmenyNaTurnus() {
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        for (int i = 1; i <= 5; i++) {
+            dataset.addValue(2 + (int) (Math.random() * 4), "Zmeny", "Turnus " + i);
+        }
+        return dataset;
+    }
+
+    private DefaultCategoryDataset vytvorDatasetTrvanie() {
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        for (int i = 1; i <= 6; i++) {
+            int jazda = 80 + (int) (Math.random() * 40);
+            int zmena = jazda + 20 + (int) (Math.random() * 20);
+            dataset.addValue(jazda, "Jazda", "Zmena " + i);
+            dataset.addValue(zmena - jazda, "Nečinnosť", "Zmena " + i);
+        }
+        return dataset;
+    }
+
+    private DefaultCategoryDataset vytvorDatasetSpojeNaZmenu() {
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        for (int i = 1; i <= 6; i++) {
+            dataset.addValue(3 + (int) (Math.random() * 4), "Spoje", "Zmena " + i);
+        }
+        return dataset;
+    }
+
+    private DefaultPieDataset vytvorDatasetJazdaNecinnost() {
+        DefaultPieDataset dataset = new DefaultPieDataset();
+        dataset.setValue("Jazda", 460);
+        dataset.setValue("Nečinnosť", 140);
+        return dataset;
+    }
+
 }

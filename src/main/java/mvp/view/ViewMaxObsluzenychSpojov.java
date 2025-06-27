@@ -1,6 +1,11 @@
 package mvp.view;
 
 import mvp.Presenter;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.general.DefaultPieDataset;
 import udaje.Linka;
 
 import javax.swing.*;
@@ -312,5 +317,46 @@ public class ViewMaxObsluzenychSpojov extends ViewMaxObsadenosti {
             }
             scrollPaneLinky.setViewportView(panelLinky);
         }
+        vykresliGrafy(linky);
+    }
+
+    private void vykresliGrafy(LinkedHashMap<Integer, Linka> linky) {
+        if (linky == null || linky.isEmpty()) return;
+
+        // Dataset pre stĺpcový graf - obslúžené spoje na linku
+        DefaultCategoryDataset datasetStlpce = new DefaultCategoryDataset();
+        DefaultPieDataset datasetPie = new DefaultPieDataset();
+
+        for (Linka linka : linky.values()) {
+            String nazov = "Linka " + linka.getID();
+            datasetStlpce.addValue(linka.getPocetObsluzenychSpojov(), "Obslúžené spoje", nazov);
+            datasetPie.setValue(nazov, linka.getRealnaObsadenost());
+        }
+
+        // Stĺpcový graf
+        JFreeChart barChart = ChartFactory.createBarChart(
+                "Počet obslúžených spojov na linku",
+                "Linka",
+                "Počet spojov",
+                datasetStlpce
+        );
+
+        // Koláčový graf relatívnej obsadenosti
+        JFreeChart pieChart = ChartFactory.createPieChart(
+                "Relatívna obsadenosť liniek",
+                datasetPie,
+                true,
+                true,
+                false
+        );
+
+        JPanel grafyPanel = new JPanel();
+        grafyPanel.setLayout(new GridLayout(1, 2));  // 2 grafy vedľa seba
+
+        grafyPanel.add(new ChartPanel(barChart));
+        grafyPanel.add(new ChartPanel(pieChart));
+
+        scrollPaneGrafy.setViewportView(grafyPanel);
+        scrollPaneGrafy.setVisible(true);
     }
 }

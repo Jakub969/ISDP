@@ -1,6 +1,11 @@
 package mvp.view;
 
 import mvp.Presenter;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.category.DefaultCategoryDataset;
 
 import javax.swing.*;
 import javax.swing.table.JTableHeader;
@@ -147,5 +152,54 @@ public class ViewMinBusov extends ViewOptimalizacia {
             panelSpoje.add(Box.createRigidArea(new Dimension(0, 10)));
         }
         scrollPaneSpoje.setViewportView(panelSpoje);
+        zobrazGrafy(udajeOturnusoch, spojeUdaje);
     }
+
+    private void zobrazGrafy(ArrayList<String[]> udajeOturnusoch, ArrayList<String[][]> spojeUdaje) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+        // Graf trvania turnusov
+        DefaultCategoryDataset dataset1 = new DefaultCategoryDataset();
+        for (int i = 0; i < udajeOturnusoch.size(); i++) {
+            String[] turnus = udajeOturnusoch.get(i);
+            int minuty = parseCasNaMinuty(turnus[2]);
+            dataset1.addValue(minuty, "Trvanie (min)", String.valueOf(i + 1));
+        }
+        JFreeChart chart1 = ChartFactory.createBarChart("Trvanie turnusov", "Turnus", "Minúty", dataset1, PlotOrientation.VERTICAL, false, true, false);
+        panel.add(new ChartPanel(chart1));
+
+        // Graf počtu spojov
+        DefaultCategoryDataset dataset2 = new DefaultCategoryDataset();
+        for (int i = 0; i < spojeUdaje.size(); i++) {
+            int pocet = spojeUdaje.get(i).length;
+            dataset2.addValue(pocet, "Počet spojov", String.valueOf(i + 1));
+        }
+        JFreeChart chart2 = ChartFactory.createBarChart("Počet spojov na turnus", "Turnus", "Spoje", dataset2, PlotOrientation.VERTICAL, false, true, false);
+        panel.add(new ChartPanel(chart2));
+
+        // Koláčový graf – percentuálne rozdelenie spojov
+        int celkovyPocet = spojeUdaje.stream().mapToInt(t -> t.length).sum();
+        org.jfree.data.general.DefaultPieDataset pieDataset = new org.jfree.data.general.DefaultPieDataset();
+        for (int i = 0; i < spojeUdaje.size(); i++) {
+            int pocet = spojeUdaje.get(i).length;
+            double percento = (double) pocet / celkovyPocet * 100;
+            pieDataset.setValue("Turnus " + (i + 1) + " (" + String.format("%.1f", percento) + "%)", pocet);
+        }
+        JFreeChart pieChart = ChartFactory.createPieChart("Percentuálny podiel spojov na turnusoch", pieDataset, true, true, false);
+        panel.add(new ChartPanel(pieChart));
+
+        // Zobrazenie všetkých grafov
+        scrollPaneGrafy.setViewportView(panel);
+        scrollPaneGrafy.setVisible(true);
+    }
+
+    private int parseCasNaMinuty(String cas) {
+        // očakáva formát "hh:mm"
+        String[] parts = cas.split(":");
+        int hodiny = Integer.parseInt(parts[0]);
+        int minuty = Integer.parseInt(parts[1]);
+        return hodiny * 60 + minuty;
+    }
+
 }
