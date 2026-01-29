@@ -1,6 +1,9 @@
 package mvp;
 
 import mvp.view.TurnusViz;
+import subory.NacitavacUdajov;
+import subory.SpojDTO;
+import subory.TripsXML;
 import udaje.Linka;
 import vizualizer.BusSchedulePanel;
 import vizualizer.Ride;
@@ -17,6 +20,9 @@ import java.util.List;
 public class Presenter {
     private final Model model;
     private final String outputDir; // Pridaný adresár pre ukladanie vizualizácií
+    private final NacitavacUdajov nacitavac = new NacitavacUdajov();
+    private final SpojDTO json = new SpojDTO();
+    private final TripsXML xml = new TripsXML();
 
     public class TurnusDTO {
         public LocalTime startDate;
@@ -39,6 +45,23 @@ public class Presenter {
         this.model = new Model();
         this.outputDir = outputDirectory;
     }
+
+    private void nacitajSpojeCSV(File file) throws Exception {
+        nacitavac.nacitajSpojeCSV(file, new LinkedHashMap<>(), new LinkedHashMap<>());
+    }
+
+    private void nacitajSpojeXML(File file) throws Exception {
+        xml.nacitajSpojeXML(file, new LinkedHashMap<>(), new LinkedHashMap<>());
+    }
+
+    private void nacitajSpojeJSON(File file) throws Exception {
+        json.nacitajSpojeJSON(file, new LinkedHashMap<>(), new LinkedHashMap<>());
+    }
+
+    private void nacitajSpojeTXT(File file) throws Exception {
+        nacitavac.nacitajSpoje(file, new LinkedHashMap<>(), new LinkedHashMap<>());
+    }
+
     //1. panel - Vstupné údaje
     public void ziskajKonstanty(String[] konstanty)
     {
@@ -65,6 +88,34 @@ public class Presenter {
     {
         return this.model.nacitajSpoje(pSuborSpoje);
     }
+
+    public String nacitajSpojeAuto(File file) {
+        try {
+            String name = file.getName().toLowerCase();
+
+            if (name.endsWith(".txt")) {
+                nacitajSpojeTXT(file);
+            }
+            else if (name.endsWith(".csv")) {
+                nacitajSpojeCSV(file);
+            }
+            else if (name.endsWith(".json")) {
+                nacitajSpojeJSON(file);
+            }
+            else if (name.endsWith(".xml")) {
+                nacitajSpojeXML(file);
+            }
+            else {
+                return "Nepodporovaný typ súboru.";
+            }
+
+            return "Načítanie spojov bolo úspešné.";
+        }
+        catch (Exception e) {
+            return "Chyba pri načítaní: " + e.getMessage();
+        }
+    }
+
 
     //2. panel - Zobrazenie údajov
     public String[][] getUdajeUseky()

@@ -23,7 +23,7 @@ public class View {
         JFrame frame = new JFrame("Aplikácia");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setResizable(false);
-        frame.setSize(950, 700);
+        frame.setSize(1400, 1200);
         frame.setLocationRelativeTo(null);
 
         this.panel = new JPanel();

@@ -2,9 +2,11 @@ package mvp.view;
 
 import mvp.Presenter;
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.File;
 import java.util.Objects;
 
 public class VievNastavenieUdajov extends JPanel
@@ -78,8 +80,10 @@ public class VievNastavenieUdajov extends JPanel
         JLabel labelVlastneUdaje = new JLabel();
         JButton buttonUseky = new JButton();
         JButton buttonSpoje = new JButton();
+        JButton buttonSpojeAuto = new JButton();
         JLabel labelUseky = new JLabel();
         JLabel labelSpoje = new JLabel();
+        JLabel labelSpojeAuto = new JLabel();
 
         setPreferredSize(new java.awt.Dimension(700, 600));
 
@@ -185,6 +189,7 @@ public class VievNastavenieUdajov extends JPanel
 
         buttonUseky.setText("Načítať úseky");
         buttonSpoje.setText("Načítať spoje");
+        buttonSpojeAuto.setText("Načítaj dáta(csv, xml, json)");
 
         labelUseky.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         labelUseky.setFont(new java.awt.Font("sansserif", Font.PLAIN, 14)); // NOI18N
@@ -195,6 +200,11 @@ public class VievNastavenieUdajov extends JPanel
         labelSpoje.setFont(new java.awt.Font("sansserif", Font.PLAIN, 14)); // NOI18N
         labelSpoje.setLabelFor(buttonSpoje);
         labelSpoje.setText("Súbor nie je vybraný");
+
+        labelSpojeAuto.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        labelSpojeAuto.setFont(new java.awt.Font("sansserif", Font.PLAIN, 14)); // NOI18N
+        labelSpojeAuto.setLabelFor(buttonSpojeAuto);
+        labelSpojeAuto.setText("Súbor nie je vybraný");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -281,7 +291,11 @@ public class VievNastavenieUdajov extends JPanel
                                                 .addGap(18, 18, 18)
                                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                                         .addComponent(labelSpoje, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                        .addComponent(buttonSpoje, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                                                        .addComponent(buttonSpoje, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                                .addGap(18, 18, 18)
+                                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                                        .addComponent(labelSpojeAuto, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                        .addComponent(buttonSpojeAuto, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                                         .addComponent(labelVlastneUdaje, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -306,11 +320,13 @@ public class VievNastavenieUdajov extends JPanel
                                                 .addGap(18, 18, 18)
                                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                                         .addComponent(labelUseky)
-                                                        .addComponent(labelSpoje))
+                                                        .addComponent(labelSpoje)
+                                                        .addComponent(labelSpojeAuto))
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 20, 20)
                                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                                         .addComponent(buttonUseky)
-                                                        .addComponent(buttonSpoje))
+                                                        .addComponent(buttonSpoje)
+                                                        .addComponent(buttonSpojeAuto))
                                                 .addGap(36, 36, 36))
                                         .addGroup(layout.createSequentialGroup()
                                                 .addGap(25, 25, 25)
@@ -448,6 +464,32 @@ public class VievNastavenieUdajov extends JPanel
                     labelSpoje.setText(jfc.getSelectedFile().getName());
             }
         });
+        buttonSpojeAuto.addActionListener(evt -> {
+            JFileChooser jfc = new JFileChooser();
+
+            jfc.setFileFilter(new FileNameExtensionFilter(
+                    "Spoje (txt, csv, xml, json)",
+                    "txt", "csv", "xml", "json"
+            ));
+
+            int returnState = jfc.showOpenDialog(this);
+            if (returnState == JFileChooser.APPROVE_OPTION) {
+                File file = jfc.getSelectedFile();
+
+                String msg = presenter.nacitajSpojeAuto(file);
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        msg,
+                        "Informácia",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+
+                if (Objects.equals(msg, "Načítanie spojov bolo úspešné."))
+                    labelSpojeAuto.setText(file.getName());
+            }
+        });
+
     }
 
     /**
