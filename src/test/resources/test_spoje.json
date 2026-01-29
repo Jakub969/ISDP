@@ -1,0 +1,37 @@
+{
+  "spoje": [
+    {
+      "idLinky": 1,
+      "idSpoja": 1,
+      "miestoOdchodu": 10,
+      "casOdchodu": "8:00",
+      "miestoPrichodu": 20,
+      "casPrichodu": "8:30",
+      "trvanie": "0:30",
+      "dlzka": 15.5,
+      "obsadenost": 50
+    },
+    {
+      "idLinky": 1,
+      "idSpoja": 2,
+      "miestoOdchodu": 20,
+      "casOdchodu": "9:00",
+      "miestoPrichodu": 30,
+      "casPrichodu": "9:45",
+      "trvanie": "0:45",
+      "dlzka": 22.3,
+      "obsadenost": 80
+    },
+    {
+      "idLinky": 2,
+      "idSpoja": 1,
+      "miestoOdchodu": 15,
+      "casOdchodu": "10:00",
+      "miestoPrichodu": 25,
+      "casPrichodu": "10:20",
+      "trvanie": "0:20",
+      "dlzka": 10.2,
+      "obsadenost": 60
+    }
+  ]
+}

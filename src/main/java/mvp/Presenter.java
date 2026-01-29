@@ -1,6 +1,7 @@
 package mvp;
 
 import mvp.view.TurnusViz;
+import subory.DataFormat;
 import udaje.Linka;
 import vizualizer.BusSchedulePanel;
 import vizualizer.Ride;
@@ -64,6 +65,11 @@ public class Presenter {
     public String nacitajSpoje(File pSuborSpoje)
     {
         return this.model.nacitajSpoje(pSuborSpoje);
+    }
+    
+    public void nastavDataFormat(DataFormat format)
+    {
+        this.model.nastavDataFormat(format);
     }
 
     //2. panel - Zobrazenie údajov

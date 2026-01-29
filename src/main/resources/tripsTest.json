@@ -1,0 +1,92 @@
+{
+  "spoje": [
+    {
+      "idLinky": 1,
+      "idSpoja": 1,
+      "miestoOdchodu": 102,
+      "casOdchodu": "14:15",
+      "miestoPrichodu": 10,
+      "casPrichodu": "14:32",
+      "trvanie": "0:17",
+      "dlzka": 10.7,
+      "obsadenost": 100
+    },
+    {
+      "idLinky": 1,
+      "idSpoja": 2,
+      "miestoOdchodu": 10,
+      "casOdchodu": "5:25",
+      "miestoPrichodu": 102,
+      "casPrichodu": "5:45",
+      "trvanie": "0:20",
+      "dlzka": 10.7,
+      "obsadenost": 100
+    },
+    {
+      "idLinky": 1,
+      "idSpoja": 3,
+      "miestoOdchodu": 102,
+      "casOdchodu": "14:15",
+      "miestoPrichodu": 29,
+      "casPrichodu": "14:30",
+      "trvanie": "0:15",
+      "dlzka": 8.3,
+      "obsadenost": 100
+    },
+    {
+      "idLinky": 2,
+      "idSpoja": 1,
+      "miestoOdchodu": 31,
+      "casOdchodu": "5:31",
+      "miestoPrichodu": 26,
+      "casPrichodu": "5:49",
+      "trvanie": "0:18",
+      "dlzka": 6.0,
+      "obsadenost": 100
+    },
+    {
+      "idLinky": 2,
+      "idSpoja": 2,
+      "miestoOdchodu": 59,
+      "casOdchodu": "13:50",
+      "miestoPrichodu": 26,
+      "casPrichodu": "14:07",
+      "trvanie": "0:17",
+      "dlzka": 6.1,
+      "obsadenost": 100
+    },
+    {
+      "idLinky": 3,
+      "idSpoja": 1,
+      "miestoOdchodu": 45,
+      "casOdchodu": "6:59",
+      "miestoPrichodu": 91,
+      "casPrichodu": "7:15",
+      "trvanie": "0:16",
+      "dlzka": 7.6,
+      "obsadenost": 100
+    },
+    {
+      "idLinky": 7,
+      "idSpoja": 1,
+      "miestoOdchodu": 59,
+      "casOdchodu": "4:25",
+      "miestoPrichodu": 89,
+      "casPrichodu": "4:48",
+      "trvanie": "0:23",
+      "dlzka": 9.0,
+      "obsadenost": 4
+    },
+    {
+      "idLinky": 7,
+      "idSpoja": 2,
+      "miestoOdchodu": 85,
+      "casOdchodu": "4:53",
+      "miestoPrichodu": 59,
+      "casPrichodu": "5:15",
+      "trvanie": "0:22",
+      "dlzka": 8.9,
+      "obsadenost": 26
+    }
+  ]
+}
