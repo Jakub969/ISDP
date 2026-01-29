@@ -25,42 +25,57 @@ public class TurnusZmenaCalculationTest {
     public void setUp() {
         Model.DEPO = 59;
         
-        // Create test segments
+        // Create test segments matching test files (nodes: 1, 2, 3, 4, 59)
         useky = new LinkedHashMap<>();
+        
+        // Self-loops
+        useky.put(new Dvojica<>(1, 1), 0);
+        useky.put(new Dvojica<>(2, 2), 0);
+        useky.put(new Dvojica<>(3, 3), 0);
+        useky.put(new Dvojica<>(4, 4), 0);
+        useky.put(new Dvojica<>(59, 59), 0);
+        
+        // Bidirectional segments
+        useky.put(new Dvojica<>(1, 2), 10);
+        useky.put(new Dvojica<>(2, 1), 10);
+        useky.put(new Dvojica<>(2, 3), 15);
+        useky.put(new Dvojica<>(3, 2), 15);
+        useky.put(new Dvojica<>(3, 4), 20);
+        useky.put(new Dvojica<>(4, 3), 20);
+        
         // Depot connections
-        useky.put(new Dvojica<>(59, 1), 20);  // Depot → location 1
-        useky.put(new Dvojica<>(2, 59), 25);  // Location 2 → Depot
-        useky.put(new Dvojica<>(3, 59), 30);  // Location 3 → Depot
-        useky.put(new Dvojica<>(4, 59), 35);  // Location 4 → Depot
+        useky.put(new Dvojica<>(59, 1), 20);
+        useky.put(new Dvojica<>(1, 59), 20);
+        useky.put(new Dvojica<>(59, 2), 25);
+        useky.put(new Dvojica<>(2, 59), 25);
+        useky.put(new Dvojica<>(59, 3), 30);
+        useky.put(new Dvojica<>(3, 59), 30);
+        useky.put(new Dvojica<>(59, 4), 35);
+        useky.put(new Dvojica<>(4, 59), 35);
         
-        // Between locations
-        useky.put(new Dvojica<>(1, 2), 0);   // Location 1 → 2 (same location)
-        useky.put(new Dvojica<>(2, 3), 15);  // Location 2 → 3
-        useky.put(new Dvojica<>(3, 4), 10);  // Location 3 → 4
-        
-        // Create test trips
-        // Trip 1: 08:00-08:15, location 1→2, obsadenosť 60
-        spoj1 = new Spoj(1, 1, 101, 
+        // Create test trips matching test files
+        // Trip 1: 08:00-08:30, location 1→2, obsadenosť 50
+        spoj1 = new Spoj(1, 1, 1, 
                         1, LocalTime.of(8, 0), 
-                        2, LocalTime.of(8, 15),
-                        5.0, 60);
-        
-        // Trip 2: 08:30-09:00, location 2→3, obsadenosť 70
-        spoj2 = new Spoj(2, 1, 102,
                         2, LocalTime.of(8, 30),
-                        3, LocalTime.of(9, 0),
-                        7.5, 70);
+                        15.5, 50);
         
-        // Trip 3: 09:15-09:45, location 3→4, obsadenosť 50
-        spoj3 = new Spoj(3, 2, 201,
-                        3, LocalTime.of(9, 15),
-                        4, LocalTime.of(9, 45),
-                        6.0, 50);
+        // Trip 2: 09:00-09:45, location 2→3, obsadenosť 80
+        spoj2 = new Spoj(2, 1, 2,
+                        2, LocalTime.of(9, 0),
+                        3, LocalTime.of(9, 45),
+                        22.3, 80);
+        
+        // Trip 3: 10:00-10:20, location 3→4, obsadenosť 60
+        spoj3 = new Spoj(3, 2, 3,
+                        3, LocalTime.of(10, 0),
+                        4, LocalTime.of(10, 20),
+                        10.2, 60);
         
         // Create DT matrix (driving times between trips)
         DT = new LinkedHashMap<>();
-        DT.put(new Dvojica<>(1, 2), 0);   // Trip 1 → 2: same location
-        DT.put(new Dvojica<>(2, 3), 10);  // Trip 2 → 3: 15 min segment, but only 10 used
+        DT.put(new Dvojica<>(1, 2), 10);  // Trip 1→2: location 2→2 = 0
+        DT.put(new Dvojica<>(2, 3), 15);  // Trip 2→3: location 3→3 = 0
     }
     
     /**
@@ -81,15 +96,15 @@ public class TurnusZmenaCalculationTest {
     @Test
     public void testVypocetTrvaniaZmeny() {
         // Create shift: Trip 1 only
-        // Start: 08:00 - 20 min (setup from depot) = 07:40
-        // End: 08:15 + 25 min (teardown to depot) = 08:40
-        // Duration: 08:40 - 07:40 = 60 minutes
+        // Start: 08:00 - 20 min (setup from depot to location 1) = 07:40
+        // End: 08:30 + 25 min (teardown from location 2 to depot) = 08:55
+        // Duration: 08:55 - 07:40 = 75 minutes
         
         Zmena zmena = new Zmena(1, 1, spoj1, useky);
         int trvanie = zmena.getTrvanieZmeny();
         
-        // 20 min setup + 15 min trip + 25 min teardown = 60 min
-        assertEquals(60, trvanie);
+        // 20 min setup + 30 min trip + 25 min teardown = 75 min
+        assertEquals(75, trvanie);
     }
     
     /**
@@ -102,11 +117,11 @@ public class TurnusZmenaCalculationTest {
         
         Zmena zmena = new Zmena(1, 1, spoj1, useky);
         
-        // Start: 08:00 - 20 min = 07:40
-        // End: 09:00 + 30 min = 09:30
-        // Duration: 09:30 - 07:40 = 110 minutes
+        // Start: 08:00 - 20 min (depot→1) = 07:40
+        // End: 09:45 + 30 min (3→depot) = 10:15
+        // Duration: 10:15 - 07:40 = 155 minutes
         int trvanie = zmena.getTrvanieZmeny();
-        assertEquals(110, trvanie);
+        assertEquals(155, trvanie);
     }
     
     /**
@@ -118,9 +133,9 @@ public class TurnusZmenaCalculationTest {
         // Single trip shift
         Zmena zmena = new Zmena(1, 1, spoj1, useky);
         
-        // Setup (20) + Trip duration (15) + Teardown (25) = 60
+        // Setup (20) + Trip duration (30) + Teardown (25) = 75
         int trvanieJazdy = zmena.getTrvanieJazdy(DT);
-        assertEquals(60, trvanieJazdy);
+        assertEquals(75, trvanieJazdy);
     }
     
     /**
@@ -132,9 +147,9 @@ public class TurnusZmenaCalculationTest {
         
         Zmena zmena = new Zmena(1, 1, spoj1, useky);
         
-        // Setup (20) + Trip1 (15) + Connection (0 from DT) + Trip2 (30) + Teardown (30) = 95
+        // Setup (20) + Trip1 (30) + Connection (DT[1,2]=10) + Trip2 (45) + Teardown (30) = 135
         int trvanieJazdy = zmena.getTrvanieJazdy(DT);
-        assertEquals(95, trvanieJazdy);
+        assertEquals(135, trvanieJazdy);
     }
     
     /**
@@ -145,23 +160,13 @@ public class TurnusZmenaCalculationTest {
     public void testVypocetPrazdnychPrejazdov() {
         // Connect trip 1 → trip 2
         // Trip 1 arrives at location 2, Trip 2 departs from location 2
-        // Segment 2→2 doesn't exist, so empty run should be 0 from the map
+        // We have self-loop 2→2 = 0 in useky
         spoj1.setNasledujuciSpoj(spoj2);
         
         Zmena zmena = new Zmena(1, 1, spoj1, useky);
         
-        // Empty run is the segment between arrival and departure locations
-        // Location 2 → Location 2 = useky.get((2,2)) 
-        // Since we didn't define (2,2), it would be 0 or cause error
-        // The real calculation uses actual segments defined in useky
-        
-        // With our data: trip1 ends at 2, trip2 starts at 2 → segment (2,2)
-        // We need to add this segment
-        useky.put(new Dvojica<>(2, 2), 0);
-        
-        Zmena zmena2 = new Zmena(1, 1, spoj1, useky);
-        // This test verifies the calculation doesn't crash
-        assertNotNull(zmena2);
+        // This test verifies the calculation doesn't crash with proper segments
+        assertNotNull(zmena);
     }
     
     /**
@@ -206,7 +211,7 @@ public class TurnusZmenaCalculationTest {
         assertEquals(3, udaje.length);
         assertEquals("1", udaje[0]); // Turnus ID
         assertEquals("1", udaje[1]); // Number of shifts
-        assertEquals("1:00", udaje[2]); // Duration in HH:MM format (60 minutes)
+        assertEquals("1:15", udaje[2]); // Duration in HH:MM format (75 minutes)
     }
     
     /**
@@ -214,7 +219,7 @@ public class TurnusZmenaCalculationTest {
      */
     @Test
     public void testTrvanieTurnusuSDvomaZmenami() {
-        Zmena zmena1 = new Zmena(1, 1, spoj1, useky);  // 60 minutes
+        Zmena zmena1 = new Zmena(1, 1, spoj1, useky);  // 75 minutes
         Zmena zmena2 = new Zmena(1, 2, spoj3, useky);  // Duration depends on spoj3
         
         Turnus turnus = new Turnus(1, zmena1);
@@ -250,8 +255,8 @@ public class TurnusZmenaCalculationTest {
         // Start time: 08:00 - 20 min = 07:40
         assertEquals("07:40", udaje[2]);
         
-        // End time: 08:15 + 25 min = 08:40
-        assertEquals("08:40", udaje[3]);
+        // End time: 08:30 + 25 min = 08:55
+        assertEquals("08:55", udaje[3]);
         
         // Setup time
         assertEquals("20", udaje[4]);
@@ -265,14 +270,14 @@ public class TurnusZmenaCalculationTest {
      */
     @Test
     public void testTrvanieSpoja() {
-        // Trip 1: 08:00 - 08:15 = 15 minutes
-        assertEquals(15, spoj1.getTrvanieSpoja());
+        // Trip 1: 08:00 - 08:30 = 30 minutes
+        assertEquals(30, spoj1.getTrvanieSpoja());
         
-        // Trip 2: 08:30 - 09:00 = 30 minutes
-        assertEquals(30, spoj2.getTrvanieSpoja());
+        // Trip 2: 09:00 - 09:45 = 45 minutes
+        assertEquals(45, spoj2.getTrvanieSpoja());
         
-        // Trip 3: 09:15 - 09:45 = 30 minutes
-        assertEquals(30, spoj3.getTrvanieSpoja());
+        // Trip 3: 10:00 - 10:20 = 20 minutes
+        assertEquals(20, spoj3.getTrvanieSpoja());
     }
     
     /**
@@ -283,11 +288,11 @@ public class TurnusZmenaCalculationTest {
         // 08:00 = 480 minutes
         assertEquals(480, spoj1.getCasOdchoduVMinutach());
         
-        // 08:15 = 495 minutes
-        assertEquals(495, spoj1.getCasPrichoduVMinutach());
+        // 08:30 = 510 minutes
+        assertEquals(510, spoj1.getCasPrichoduVMinutach());
         
-        // 09:00 = 540 minutes
-        assertEquals(540, spoj2.getCasPrichoduVMinutach());
+        // 09:45 = 585 minutes
+        assertEquals(585, spoj2.getCasPrichoduVMinutach());
     }
     
     /**
@@ -323,8 +328,8 @@ public class TurnusZmenaCalculationTest {
         
         // Calculate total duration
         // Start: 08:00 - 20 min = 07:40
-        // End: 09:45 + 35 min = 10:20
-        // Duration: 160 minutes
+        // End: 10:20 + 35 min = 10:55
+        // Duration: 195 minutes
         int trvanie = zmena.getTrvanieZmeny();
         assertTrue(trvanie > 100, "Duration with 3 trips should be > 100 minutes");
     }

@@ -57,7 +57,7 @@ public class ModelCalculationTest {
         
         String[][] useky = model.getUdajeUseky();
         assertNotNull(useky);
-        assertEquals(3, useky.length);
+        assertEquals(10, useky.length); // Changed from 3 to 10 - we now have bidirectional segments + self-loops
         
         // Verify specific segments
         // Segment 1→2 with cost 10
@@ -144,13 +144,13 @@ public class ModelCalculationTest {
         Linka linka1 = linky.get(1);
         Spoj spoj1 = linka1.getSpoje().get(0);
         
-        // Trip from 08:00 to 08:15 should be 15 minutes
+        // Trip from 08:00 to 08:30 should be 30 minutes
         int trvanie = spoj1.getTrvanieSpoja();
-        assertEquals(15, trvanie);
+        assertEquals(30, trvanie);
         
-        // Trip from 08:30 to 09:00 should be 30 minutes
+        // Trip from 09:00 to 09:45 should be 45 minutes
         Spoj spoj2 = linka1.getSpoje().get(1);
-        assertEquals(30, spoj2.getTrvanieSpoja());
+        assertEquals(45, spoj2.getTrvanieSpoja());
     }
     
     /**
@@ -323,8 +323,8 @@ public class ModelCalculationTest {
         // 08:00 = 8*60 = 480 minutes
         assertEquals(480, spoj1.getCasOdchoduVMinutach());
         
-        // 08:15 = 8*60 + 15 = 495 minutes
-        assertEquals(495, spoj1.getCasPrichoduVMinutach());
+        // 08:30 = 8*60 + 30 = 510 minutes
+        assertEquals(510, spoj1.getCasPrichoduVMinutach());
     }
     
     /**
@@ -355,7 +355,7 @@ public class ModelCalculationTest {
         
         String[][] useky = model.getUdajeUseky();
         assertNotNull(useky);
-        assertEquals(3, useky.length);
+        assertEquals(10, useky.length); // Changed from 3 to 10
     }
     
     /**
