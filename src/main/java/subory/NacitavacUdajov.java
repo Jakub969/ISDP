@@ -92,4 +92,66 @@ public class NacitavacUdajov
         String decodedWay = URLDecoder.decode(getClass().getResource("/" + fileName).getPath(), StandardCharsets.UTF_8);
         return new File(decodedWay);
     }
+
+    public void nacitajSpojeCSV(
+            File subor,
+            LinkedHashMap<Integer, Spoj> pSpoje,
+            LinkedHashMap<Integer, Linka> pLinky) throws Exception {
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("H:mm");
+        Scanner scanner = new Scanner(subor);
+
+        scanner.nextLine();
+
+        while (scanner.hasNextLine()) {
+            String[] s = scanner.nextLine().split(",");
+
+            int idLinky = Integer.parseInt(s[0]);
+            int idSpoja = Integer.parseInt(s[1]);
+            int id = Model.K * idLinky + idSpoja;
+
+            int miestoOdchodu = Integer.parseInt(s[2]);
+            LocalTime casOdchodu = LocalTime.parse(s[3], formatter);
+
+            int miestoPrichodu = Integer.parseInt(s[4]);
+            LocalTime casPrichodu = LocalTime.parse(s[5], formatter);
+
+            double dlzka = Double.parseDouble(s[7]);
+            int obsadenost = Integer.parseInt(s[8]);
+
+            Linka linka = pLinky.computeIfAbsent(idLinky, Linka::new);
+
+            Spoj spoj = new Spoj(id, idLinky, idSpoja,
+                    miestoOdchodu, casOdchodu,
+                    miestoPrichodu, casPrichodu,
+                    dlzka, obsadenost);
+
+            pSpoje.put(id, spoj);
+            linka.pridajSpoj(spoj);
+        }
+        scanner.close();
+    }
+
+    public void nacitajUsekyCSV(
+            File subor,
+            LinkedHashMap<Dvojica<Integer, Integer>, Integer> pUseky
+    ) throws Exception {
+
+        Scanner scanner = new Scanner(subor);
+        scanner.nextLine(); // hlavička
+
+        while (scanner.hasNextLine()) {
+            String[] s = scanner.nextLine().split(",");
+
+            int u = Integer.parseInt(s[0]);
+            int v = Integer.parseInt(s[1]);
+            int c = Integer.parseInt(s[2]);
+
+            pUseky.put(new Dvojica<>(u, v), c);
+            pUseky.put(new Dvojica<>(v, u), c);
+            pUseky.put(new Dvojica<>(u, u), 0);
+            pUseky.put(new Dvojica<>(v, v), 0);
+        }
+        scanner.close();
+    }
 }

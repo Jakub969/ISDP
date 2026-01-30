@@ -136,14 +136,14 @@ public abstract class ViewOptimalizacia extends JPanel {
                 panelGrafyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(panelGrafyLayout.createSequentialGroup()
                                 .addContainerGap()
-                                .addComponent(scrollPaneGrafy, 900, 900, 900)
+                                .addComponent(scrollPaneGrafy, 1200, 1200, 1200)
                                 .addContainerGap())
         );
         panelGrafyLayout.setVerticalGroup(
                 panelGrafyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(panelGrafyLayout.createSequentialGroup()
                                 .addContainerGap()
-                                .addComponent(scrollPaneGrafy, 537, 537, 537)
+                                .addComponent(scrollPaneGrafy, 1000, 1000, 1000)
                                 .addContainerGap())
         );
 

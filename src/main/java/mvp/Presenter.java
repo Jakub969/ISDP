@@ -1,6 +1,7 @@
 package mvp;
 
 import mvp.view.TurnusViz;
+import subory.*;
 import udaje.Linka;
 import vizualizer.BusSchedulePanel;
 import vizualizer.Ride;
@@ -9,7 +10,6 @@ import udaje.Turnus;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.List;
@@ -17,6 +17,12 @@ import java.util.List;
 public class Presenter {
     private final Model model;
     private final String outputDir; // Pridaný adresár pre ukladanie vizualizácií
+    private final NacitavacUdajov nacitavac = new NacitavacUdajov();
+    private final SpojDTO json_spoj = new SpojDTO();
+    private final TripsXML xml_spoj = new TripsXML();
+    private final UsekDTO json_usek = new UsekDTO();
+    private final UsekyXML xml_useky = new UsekyXML();
+
 
     public class TurnusDTO {
         public LocalTime startDate;
@@ -39,6 +45,35 @@ public class Presenter {
         this.model = new Model();
         this.outputDir = outputDirectory;
     }
+
+    private void nacitajSpojeCSV(File file) throws Exception {
+        nacitavac.nacitajSpojeCSV(file, new LinkedHashMap<>(), new LinkedHashMap<>());
+    }
+
+    private void nacitajSpojeXML(File file) throws Exception {
+        xml_spoj.nacitajSpojeXML(file, new LinkedHashMap<>(), new LinkedHashMap<>());
+    }
+
+    private void nacitajSpojeJSON(File file) throws Exception {
+        json_spoj.nacitajSpojeJSON(file, new LinkedHashMap<>(), new LinkedHashMap<>());
+    }
+
+    private void nacitajSpojeTXT(File file) throws Exception {
+        nacitavac.nacitajSpoje(file, new LinkedHashMap<>(), new LinkedHashMap<>());
+    }
+
+    private void nacitajUsekyCSV(File file) throws Exception {
+        nacitavac.nacitajUsekyCSV(file, new LinkedHashMap<>());
+    }
+
+    private void nacitajUsekyXML(File file) throws Exception {
+        xml_useky.nacitajUsekyXML(file, new LinkedHashMap<>());
+    }
+
+    private void nacitajUsekyJSON(File file) throws Exception {
+        json_usek.nacitajUsekyJSON(file, new LinkedHashMap<>());
+    }
+
     //1. panel - Vstupné údaje
     public void ziskajKonstanty(String[] konstanty)
     {
@@ -65,6 +100,34 @@ public class Presenter {
     {
         return this.model.nacitajSpoje(pSuborSpoje);
     }
+
+    public String nacitajSpojeAuto(File file) {
+        try {
+            String name = file.getName().toLowerCase();
+
+            if (name.endsWith(".txt")) {
+                nacitajSpojeTXT(file);
+            }
+            else if (name.endsWith(".csv")) {
+                nacitajSpojeCSV(file);
+            }
+            else if (name.endsWith(".json")) {
+                nacitajSpojeJSON(file);
+            }
+            else if (name.endsWith(".xml")) {
+                nacitajSpojeXML(file);
+            }
+            else {
+                return "Nepodporovaný typ súboru.";
+            }
+
+            return "Načítanie spojov bolo úspešné.";
+        }
+        catch (Exception e) {
+            return "Chyba pri načítaní: " + e.getMessage();
+        }
+    }
+
 
     //2. panel - Zobrazenie údajov
     public String[][] getUdajeUseky()
