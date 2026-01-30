@@ -1,6 +1,7 @@
 package mvp.view;
 
 import mvp.Presenter;
+import subory.DataFormat;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -80,6 +81,10 @@ public class VievNastavenieUdajov extends JPanel
         JButton buttonSpoje = new JButton();
         JLabel labelUseky = new JLabel();
         JLabel labelSpoje = new JLabel();
+        
+        // Pridanie výberu formátu
+        JLabel labelFormat = new JLabel();
+        JComboBox<DataFormat> comboBoxFormat = new JComboBox<>(DataFormat.values());
 
         setPreferredSize(new java.awt.Dimension(700, 600));
 
@@ -195,6 +200,11 @@ public class VievNastavenieUdajov extends JPanel
         labelSpoje.setFont(new java.awt.Font("sansserif", Font.PLAIN, 14)); // NOI18N
         labelSpoje.setLabelFor(buttonSpoje);
         labelSpoje.setText("Súbor nie je vybraný");
+        
+        labelFormat.setFont(new java.awt.Font("sansserif", Font.BOLD, 14)); // NOI18N
+        labelFormat.setText("Formát súboru:");
+        comboBoxFormat.setFont(new java.awt.Font("sansserif", Font.PLAIN, 14)); // NOI18N
+        comboBoxFormat.setSelectedItem(DataFormat.PLAIN_TEXT);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -418,12 +428,19 @@ public class VievNastavenieUdajov extends JPanel
         });
         buttonMartinVrutky.addActionListener(evt ->
         {
+            // Nastaví formát na Plain Text pre default súbory
+            DataFormat selectedFormat = (DataFormat) comboBoxFormat.getSelectedItem();
+            presenter.nastavDataFormat(selectedFormat != null ? selectedFormat : DataFormat.PLAIN_TEXT);
             JOptionPane.showMessageDialog(this,
                     presenter.nacitajSpojeUseky("dist.txt", "trips.txt"),
                     "Informácia", JOptionPane.INFORMATION_MESSAGE);
         });
         buttonUseky.addActionListener(evt ->
         {
+            // Nastaví zvolený formát pre načítavanie
+            DataFormat selectedFormat = (DataFormat) comboBoxFormat.getSelectedItem();
+            presenter.nastavDataFormat(selectedFormat != null ? selectedFormat : DataFormat.PLAIN_TEXT);
+            
             JFileChooser jfc = new JFileChooser();
             int returnState = jfc.showOpenDialog(this);
             if (returnState == JFileChooser.APPROVE_OPTION)
@@ -436,6 +453,10 @@ public class VievNastavenieUdajov extends JPanel
         });
         buttonSpoje.addActionListener(evt ->
         {
+            // Nastaví zvolený formát pre načítavanie
+            DataFormat selectedFormat = (DataFormat) comboBoxFormat.getSelectedItem();
+            presenter.nastavDataFormat(selectedFormat != null ? selectedFormat : DataFormat.PLAIN_TEXT);
+            
             JFileChooser jfc = new JFileChooser();
             int returnState = jfc.showOpenDialog(this);
             if (returnState == JFileChooser.APPROVE_OPTION)

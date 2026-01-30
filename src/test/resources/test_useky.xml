@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<useky>
+    <usek>
+        <from>1</from>
+        <to>2</to>
+        <cost>10</cost>
+    </usek>
+    <usek>
+        <from>2</from>
+        <to>3</to>
+        <cost>15</cost>
+    </usek>
+    <usek>
+        <from>3</from>
+        <to>4</to>
+        <cost>20</cost>
+    </usek>
+</useky>

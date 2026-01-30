@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spoje>
+    <spoj>
+        <idLinky>1</idLinky>
+        <idSpoja>1</idSpoja>
+        <miestoOdchodu>10</miestoOdchodu>
+        <casOdchodu>8:00</casOdchodu>
+        <miestoPrichodu>20</miestoPrichodu>
+        <casPrichodu>8:30</casPrichodu>
+        <trvanie>0:30</trvanie>
+        <dlzka>15.5</dlzka>
+        <obsadenost>50</obsadenost>
+    </spoj>
+    <spoj>
+        <idLinky>1</idLinky>
+        <idSpoja>2</idSpoja>
+        <miestoOdchodu>20</miestoOdchodu>
+        <casOdchodu>9:00</casOdchodu>
+        <miestoPrichodu>30</miestoPrichodu>
+        <casPrichodu>9:45</casPrichodu>
+        <trvanie>0:45</trvanie>
+        <dlzka>22.3</dlzka>
+        <obsadenost>80</obsadenost>
+    </spoj>
+    <spoj>
+        <idLinky>2</idLinky>
+        <idSpoja>1</idSpoja>
+        <miestoOdchodu>15</miestoOdchodu>
+        <casOdchodu>10:00</casOdchodu>
+        <miestoPrichodu>25</miestoPrichodu>
+        <casPrichodu>10:20</casPrichodu>
+        <trvanie>0:20</trvanie>
+        <dlzka>10.2</dlzka>
+        <obsadenost>60</obsadenost>
+    </spoj>
+</spoje>

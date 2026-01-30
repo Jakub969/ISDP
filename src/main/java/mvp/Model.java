@@ -6,6 +6,7 @@ import optimalizacia.ModelMaxObsadenosti;
 import optimalizacia.ModelMaxObsluzenychSpojov;
 import optimalizacia.ModelMinBusov;
 import optimalizacia.ModelMinVodicov;
+import subory.DataFormat;
 import udaje.Turnus;
 import java.util.List;
 import udaje.*;
@@ -38,6 +39,8 @@ public class Model {
     private LinkedHashMap<Dvojica<Integer, Integer>, Integer> T;
     private List<Turnus> aktualneTurnusy;
     private String poslednyTypOptimalizacie;
+    
+    private NacitavacUdajov nacitavacUdajov;
 
     private GRBEnv env;
 
@@ -56,6 +59,8 @@ public class Model {
         SUCET_POJ = 30;
         INTERVAL_BP = 4 * 60 + 30;
         INTERVAL_POJ = 6 * 60 + 30;
+        
+        this.nacitavacUdajov = new NacitavacUdajov();
     }
 
     //1. panel - Vstupné údaje
@@ -95,6 +100,12 @@ public class Model {
             this.vypocitajOstatneUdaje();
         return "Zmeny boli uložené";
     }
+    
+    public void nastavDataFormat(DataFormat format)
+    {
+        this.nacitavacUdajov.setDataFormat(format);
+    }
+    
     public String nacitajSpojeUseky(String pNazovSuboruUseky, String pNazovSuboruSpoje)
     {
         this.useky = new LinkedHashMap<>();
@@ -102,10 +113,9 @@ public class Model {
         this.linky = new LinkedHashMap<>();
 
         //načítanie úsekov, spojov a liniek
-        NacitavacUdajov nacitavacUdajov = new NacitavacUdajov();
         try
         {
-            nacitavacUdajov.nacitajUseky(pNazovSuboruUseky, this.useky);
+            this.nacitavacUdajov.nacitajUseky(pNazovSuboruUseky, this.useky);
         }
         catch (Exception e)
         {
@@ -114,7 +124,7 @@ public class Model {
 
         try
         {
-            nacitavacUdajov.nacitajSpoje(pNazovSuboruSpoje, this.spoje, this.linky);
+            this.nacitavacUdajov.nacitajSpoje(pNazovSuboruSpoje, this.spoje, this.linky);
         }
         catch (Exception e)
         {
@@ -130,10 +140,9 @@ public class Model {
         this.useky = new LinkedHashMap<>();
 
         //načítanie úsekov
-        NacitavacUdajov nacitavacUdajov = new NacitavacUdajov();
         try
         {
-            nacitavacUdajov.nacitajUseky(pSuborUseky, this.useky);
+            this.nacitavacUdajov.nacitajUseky(pSuborUseky, this.useky);
         }
         catch (Exception e)
         {
@@ -150,11 +159,9 @@ public class Model {
         this.linky = new LinkedHashMap<>();
 
         //načítanie úsekov, spojov a liniek
-        NacitavacUdajov nacitavacUdajov = new NacitavacUdajov();
-
         try
         {
-            nacitavacUdajov.nacitajSpoje(pSuborSpoje, this.spoje, this.linky);
+            this.nacitavacUdajov.nacitajSpoje(pSuborSpoje, this.spoje, this.linky);
         }
         catch (Exception e)
         {
@@ -191,7 +198,13 @@ public class Model {
                 int miestoOdchodu_j = spoj_j.getMiestoOdchodu();
                 int casOdchodu_j = spoj_j.getCasOdchoduVMinutach();
 
-                int casPrejazdu = this.useky.get(new Dvojica<>(miestoPrichodu_i, miestoOdchodu_j));
+                // Kontrola, či úsek existuje
+                Integer casPrejazduObj = this.useky.get(new Dvojica<>(miestoPrichodu_i, miestoOdchodu_j));
+                if (casPrejazduObj == null) {
+                    // Úsek neexistuje v dátach, preskočiť tento pár spojov
+                    continue;
+                }
+                int casPrejazdu = casPrejazduObj;
 
                 if (casPrichodu_i + casPrejazdu + REZERVA_1 <= casOdchodu_j)
                 {
@@ -205,13 +218,20 @@ public class Model {
                     spoj_j.pridajMoznyPredchadzajuciSpoj(spoj_i);
                 }
 
-                int casPrejazduDoDepa = this.useky.get(new Dvojica<>(miestoPrichodu_i, DEPO));
-                int casPrejazduZDepa = this.useky.get(new Dvojica<>(DEPO, miestoOdchodu_j));
-
-                if (casPrichodu_i + casPrejazduDoDepa + casPrejazduZDepa + REZERVA_2 <= casOdchodu_j)
+                // Kontrola úsekov do a z depa
+                Integer casPrejazduDoDepaObj = this.useky.get(new Dvojica<>(miestoPrichodu_i, DEPO));
+                Integer casPrejazduZDepaObj = this.useky.get(new Dvojica<>(DEPO, miestoOdchodu_j));
+                
+                if (casPrejazduDoDepaObj != null && casPrejazduZDepaObj != null)
                 {
-                    spoj_i.pridajMoznyNasledujuciSpojSVymenouVodica(spoj_j);
-                    spoj_j.pridajMoznyPredchadzajuciSpojSVymenouVodica(spoj_i);
+                    int casPrejazduDoDepa = casPrejazduDoDepaObj;
+                    int casPrejazduZDepa = casPrejazduZDepaObj;
+                    
+                    if (casPrichodu_i + casPrejazduDoDepa + casPrejazduZDepa + REZERVA_2 <= casOdchodu_j)
+                    {
+                        spoj_i.pridajMoznyNasledujuciSpojSVymenouVodica(spoj_j);
+                        spoj_j.pridajMoznyPredchadzajuciSpojSVymenouVodica(spoj_i);
+                    }
                 }
             }
         }
@@ -288,6 +308,18 @@ public class Model {
     // 3. panel - Minimalizácia počtu autobusov
     public boolean jeProstrediePripravene()
     {
+        // Kontrola, či sú načítané potrebné údaje (úseky a spoje)
+        // Gurobi environment môže byť null kvôli licenčným problémom, ale údaje môžu byť načítané
+        return this.useky != null && !this.useky.isEmpty() && 
+               this.spoje != null && !this.spoje.isEmpty();
+    }
+
+    /**
+     * Kontrola, či je Gurobi environment pripravený pre optimalizáciu
+     * @return true ak je Gurobi inicializovaný, false inak
+     */
+    public boolean jeGurobiPripraveny()
+    {
         return this.env != null;
     }
 
@@ -295,6 +327,11 @@ public class Model {
                                                 ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje,
                                                 ArrayList<String[]> pUdajeOiteraciach)
     {
+        if (!jeGurobiPripraveny())
+        {
+            return "Gurobi environment nie je inicializovaný! Skontrolujte licenciu.";
+        }
+        
         try
         {
             ModelMinBusov minBusov = new ModelMinBusov(this.spoje, this.useky, pUdajeOiteraciach);
@@ -325,8 +362,11 @@ public class Model {
     public String vykonajMinimalizaciuVodicov(int pPocetBusov, double pGap, int pCasLimit, ArrayList<String[]> pUdajeOturnusoch,
                                                 ArrayList<String[]> pTurnusyUdaje, ArrayList<String[][]> pSpojeUdaje,
                                                 ArrayList<String[]> pUdajeOiteraciach)
-    {
-        try
+    {        if (!jeGurobiPripraveny())
+        {
+            return "Gurobi environment nie je inicializovaný! Skontrolujte licenciu.";
+        }
+                try
         {
             ModelMinVodicov minVodicov = new ModelMinVodicov(pPocetBusov, this.spoje, this.useky, this.DT, this.T, pUdajeOiteraciach);
             boolean vyrieseny = minVodicov.vyriesModel(this.env, pGap, pCasLimit);
