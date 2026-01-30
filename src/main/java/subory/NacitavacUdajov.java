@@ -132,4 +132,26 @@ public class NacitavacUdajov
         scanner.close();
     }
 
+    public void nacitajUsekyCSV(
+            File subor,
+            LinkedHashMap<Dvojica<Integer, Integer>, Integer> pUseky
+    ) throws Exception {
+
+        Scanner scanner = new Scanner(subor);
+        scanner.nextLine(); // hlavička
+
+        while (scanner.hasNextLine()) {
+            String[] s = scanner.nextLine().split(",");
+
+            int u = Integer.parseInt(s[0]);
+            int v = Integer.parseInt(s[1]);
+            int c = Integer.parseInt(s[2]);
+
+            pUseky.put(new Dvojica<>(u, v), c);
+            pUseky.put(new Dvojica<>(v, u), c);
+            pUseky.put(new Dvojica<>(u, u), 0);
+            pUseky.put(new Dvojica<>(v, v), 0);
+        }
+        scanner.close();
+    }
 }

@@ -1,9 +1,7 @@
 package mvp;
 
 import mvp.view.TurnusViz;
-import subory.NacitavacUdajov;
-import subory.SpojDTO;
-import subory.TripsXML;
+import subory.*;
 import udaje.Linka;
 import vizualizer.BusSchedulePanel;
 import vizualizer.Ride;
@@ -12,7 +10,6 @@ import udaje.Turnus;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.List;
@@ -21,8 +18,11 @@ public class Presenter {
     private final Model model;
     private final String outputDir; // Pridaný adresár pre ukladanie vizualizácií
     private final NacitavacUdajov nacitavac = new NacitavacUdajov();
-    private final SpojDTO json = new SpojDTO();
-    private final TripsXML xml = new TripsXML();
+    private final SpojDTO json_spoj = new SpojDTO();
+    private final TripsXML xml_spoj = new TripsXML();
+    private final UsekDTO json_usek = new UsekDTO();
+    private final UsekyXML xml_useky = new UsekyXML();
+
 
     public class TurnusDTO {
         public LocalTime startDate;
@@ -51,15 +51,27 @@ public class Presenter {
     }
 
     private void nacitajSpojeXML(File file) throws Exception {
-        xml.nacitajSpojeXML(file, new LinkedHashMap<>(), new LinkedHashMap<>());
+        xml_spoj.nacitajSpojeXML(file, new LinkedHashMap<>(), new LinkedHashMap<>());
     }
 
     private void nacitajSpojeJSON(File file) throws Exception {
-        json.nacitajSpojeJSON(file, new LinkedHashMap<>(), new LinkedHashMap<>());
+        json_spoj.nacitajSpojeJSON(file, new LinkedHashMap<>(), new LinkedHashMap<>());
     }
 
     private void nacitajSpojeTXT(File file) throws Exception {
         nacitavac.nacitajSpoje(file, new LinkedHashMap<>(), new LinkedHashMap<>());
+    }
+
+    private void nacitajUsekyCSV(File file) throws Exception {
+        nacitavac.nacitajUsekyCSV(file, new LinkedHashMap<>());
+    }
+
+    private void nacitajUsekyXML(File file) throws Exception {
+        xml_useky.nacitajUsekyXML(file, new LinkedHashMap<>());
+    }
+
+    private void nacitajUsekyJSON(File file) throws Exception {
+        json_usek.nacitajUsekyJSON(file, new LinkedHashMap<>());
     }
 
     //1. panel - Vstupné údaje
